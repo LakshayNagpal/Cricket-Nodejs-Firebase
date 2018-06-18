@@ -884,15 +884,34 @@ exports.webhook = functions.https.onRequest((request, response) => {
                     'userStorage': JSON.stringify(userStorage) ,
                     "expectUserResponse": true,
                     "richResponse": {
-                    "items": [
-                      {
-                        "simpleResponse": {
-                          "textToSpeech": "Howdy! I can tell you fun facts about almost any number, like 42. What do you have in mind?",
-                          "displayText": "Howdy! I can tell you fun facts about almost any number. What do you have in mind?"
+                      "items": [
+                        {
+                          "simpleResponse": {
+                            "textToSpeech": "Howdy! I can tell you fun facts about almost any number."
+                          }
+                        },
+                        {
+                          "simpleResponse": {
+                            "textToSpeech": "What number do you have in mind?"
+                          }
                         }
+                      ],
+                      "suggestions": [
+                        {
+                          "title": "25"
+                        },
+                        {
+                          "title": "45"
+                        },
+                        {
+                          "title": "Never mind"
+                        }
+                      ],
+                      "linkOutSuggestion": {
+                        "destinationName": "Website",
+                        "url": "https://assistant.google.com"
                       }
-                    ]
-                  }
+                    }
 
 
                   }
