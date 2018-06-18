@@ -881,7 +881,51 @@ exports.webhook = functions.https.onRequest((request, response) => {
                 'fulfillmentText' : `Thank You for visiting our ${params.resortLocation} hotel branch and giving us ${params.rating} and your comment as ${params.comments}.` ,
                 'payload': {
                   'google': {
-                    'userStorage': JSON.stringify(userStorage)
+                    'userStorage': JSON.stringify(userStorage) ,
+                    "expectUserResponse": true,
+                    "richResponse": {
+                      "items": [
+                        {
+                          "simpleResponse": {
+                            "textToSpeech": "Choose a item"
+                          }
+                        }
+                      ]
+                    },
+                    "systemIntent": {
+                      "intent": "actions.intent.OPTION",
+                      "data": {
+                        "@type": "type.googleapis.com/google.actions.v2.OptionValueSpec",
+                        "carouselSelect": {
+                          "items": [
+                            {
+                              "optionInfo": {
+                                "key": "first title"
+                              },
+                              "description": "first description",
+                              "image": {
+                                "url": "https://developers.google.com/actions/images/badges/XPM_BADGING_GoogleAssistant_VER.png",
+                                "accessibilityText": "first alt"
+                              },
+                              "title": "first title"
+                            },
+                            {
+                              "optionInfo": {
+                                "key": "second"
+                              },
+                              "description": "second description",
+                              "image": {
+                                "url": "https://lh3.googleusercontent.com/Nu3a6F80WfixUqf_ec_vgXy_c0-0r4VLJRXjVFF_X_CIilEu8B9fT35qyTEj_PEsKw",
+                                "accessibilityText": "second alt"
+                              },
+                              "title": "second title"
+                            }
+                          ]
+                        }
+                      }
+                    }
+
+
                   }
                 }
 
