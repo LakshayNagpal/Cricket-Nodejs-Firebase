@@ -882,36 +882,54 @@ exports.webhook = functions.https.onRequest((request, response) => {
                 'payload': {
                   'google': {
                     'userStorage': JSON.stringify(userStorage) ,
+                    'expectUserResponse': true,
                     'richResponse': {
                       'items': [
                         {
                           'simpleResponse': {
-                            'textToSpeech': "This is a Basic Card:"
-                          }
-                        },
-                        {
-                          'basicCard': {
-                            'title': 'Card Title',
-                            'image': {
-                              'url': "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png",
-                              'accessibilityText': 'Google Logo'
-                            },
-                            'buttons': [
-                              {
-                                'title': 'Button Title',
-                                'openUrlAction': {
-                                  'url': "https://www.google.com"
-                                }
-                              }
-                            ],
-                            'imageDisplayOptions': "WHITE"
+                            'textToSpeech': "Choose a item"
                           }
                         }
                       ]
+                    },
+                    'systemIntent': {
+                      'intent': "actions.intent.OPTION",
+                      'data': {
+                        '@type': "type.googleapis.com/google.actions.v2.OptionValueSpec",
+                        'listSelect': {
+                          'title': "Hello",
+                          'items': [
+                            {
+                              'optionInfo': {
+                                'key': "first title key"
+                              },
+                              'description': "first description",
+                              'image': {
+                                'url': "https://developers.google.com/actions/images/badges/XPM_BADGING_GoogleAssistant_VER.png",
+                                'accessibilityText': "first alt"
+                              },
+                              'title': "first title"
+                            },
+                            {
+                              'optionInfo': {
+                                'key': "second"
+                              },
+                              'description': "second description",
+                              'image': {
+                                'url': "https://lh3.googleusercontent.com/Nu3a6F80WfixUqf_ec_vgXy_c0-0r4VLJRXjVFF_X_CIilEu8B9fT35qyTEj_PEsKw",
+                                'accessibilityText': "second alt"
+                              },
+                              'title': "second title"
+                            }
+                          ]
+                        }
+                      }
                     }
+
+
                   }
                 }
-                
+
 
                 });
                 return console.log("resort location", params.resortLocation);
