@@ -1,4 +1,5 @@
 const functions = require('firebase-functions');
+const fs = require('fs');
 var admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 var firestore = admin.firestore();
@@ -7,6 +8,8 @@ var http = require('http');
 const host = 'api.edamam.com';
 const recipe_api_id = 'e8297cf8';
 const recipe_api_key = '025ece12056c837955ebaa635784ef4a';
+const superhero_access_token = '1939873512698641';
+const host_superhero = 'superheroapi.com'
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
 //
@@ -42,6 +45,7 @@ exports.recipe = functions.https.onRequest((request, response) => {
             response.send({'fulfillmentText': output });
             return console.log(output);
         }).catch(() => {
+          console.log('catch block of calorieMeterNo executed');
           response.send({'fulfillmentText' : `I don't about this recipe but I hope I may be useful next time we talk!`});
         })
 
@@ -79,6 +83,7 @@ exports.recipe = functions.https.onRequest((request, response) => {
             response.send({'fulfillmentText': output });
             return console.log(output);
         }).catch(() => {
+          console.log('catch block of calorieMeterDiet executed');
           response.send({'fulfillmentText' : `I don't about this recipe but I hope I may be useful next time we talk!`});
         })
 
@@ -109,6 +114,7 @@ exports.recipe = functions.https.onRequest((request, response) => {
             response.send({'fulfillmentText': output });
             return console.log(output);
         }).catch(() => {
+          console.log('catch block of oneIngredientNo executed');
           response.send({'fulfillmentText' : `I don't about this recipe but I hope I may be useful next time we talk!`});
         })
 
@@ -145,6 +151,7 @@ exports.recipe = functions.https.onRequest((request, response) => {
             response.send({'fulfillmentText': output });
             return console.log(output);
         }).catch(() => {
+          console.log('catch block of oneIngredientDiet executed');
           response.send({'fulfillmentText' : `I don't about this recipe but I hope I may be useful next time we talk!`});
         })
 
@@ -178,6 +185,7 @@ exports.recipe = functions.https.onRequest((request, response) => {
             response.send({'fulfillmentText': output });
             return console.log(output);
         }).catch(() => {
+          console.log('catch block of multipleIngredientsNo executed');
           response.send({'fulfillmentText' : `I don't about this recipe but I hope I may be useful next time we talk!`});
         })
 
@@ -216,6 +224,7 @@ exports.recipe = functions.https.onRequest((request, response) => {
             response.send({'fulfillmentText': output });
             return console.log(output);
         }).catch(() => {
+          console.log('catch block of multipleIngredientsDiet executed');
           response.send({'fulfillmentText' : `I don't about this recipe but I hope I may be useful next time we talk!`});
         })
 
@@ -252,8 +261,7 @@ function callCalorieApi (recipe, calorie) {
         if (response['count'] === 0) {
           let asked_recipe = response['q'];
           let cal = response['params']['calories'][0];
-          let output = `Sorry, I couldn't find recipe for ${asked_recipe} with ${cal} calories!
-                        You can try increasing the number of calories or verify if the food item is written correctly.`;
+          let output = `Sorry, I couldn't find recipe for ${asked_recipe} with ${cal} calories!  \nYou can try increasing the number of calories or verify if the food item is written correctly.`;
 
           resolve(output);
 
@@ -272,8 +280,7 @@ function callCalorieApi (recipe, calorie) {
           calories = Math.ceil(calories / servings) ;
           console.log('calories_calorie_intent', calories);
 
-          let output = `The ingredient list of ${recipe_name} are ${ingredients} and this recipe has
-                        ${calories} calories for a single serving!  \n It feels good to teach people how to make unique and delicious food :)`;
+          let output = `The ingredient list of ${recipe_name} are ${ingredients} and this recipe has ${calories} calories for a single serving!  \n It feels good to teach people how to make unique and delicious food :)`;
           resolve(output);
 
         }
@@ -303,8 +310,7 @@ function callCalorieWithDietApi (recipe, calorie, diet) {
         if (response['count'] === 0) {
           let asked_recipe = response['q'];
           let cal = response['params']['calories'][0];
-          let output = `Sorry, I couldn't find recipe for ${asked_recipe} with ${cal} calories!
-                        You can try increasing the number of calories or verify if the food item is written correctly.`;
+          let output = `Sorry, I couldn't find recipe for ${asked_recipe} with ${cal} calories!  \nYou can try increasing the number of calories or verify if the food item is written correctly.`;
 
           resolve(output);
 
@@ -323,8 +329,7 @@ function callCalorieWithDietApi (recipe, calorie, diet) {
           calories = Math.ceil(calories / servings) ;
           console.log('calories_calorie_intent', calories);
 
-          let output = `The ingredient list of ${recipe_name} are ${ingredients} and this recipe has
-                        ${calories} calories for a single serving!  \nIt feels good to teach people how to make unique and delicious food :)`;
+          let output = `The ingredient list of ${recipe_name} are ${ingredients} and this recipe has ${calories} calories for a single serving!  \nIt feels good to teach people how to make unique and delicious food :)`;
           resolve(output);
 
         }
@@ -355,8 +360,7 @@ function callRecipeApi (recipe) {
         if (response['count'] === 0) {
           let asked_recipe = response['q'];
           let num_of_ingr = response['params']['ingr'][0];
-          let output = `Sorry, I couldn't find recipe for ${asked_recipe} :(
-                        Can you please verify if you have entered the food item correctly or try again with different name.`;
+          let output = `Sorry, I couldn't find recipe for ${asked_recipe}  \n Can you please verify if you have entered the food item correctly or try again with different name.`;
 
           resolve(output);
 
@@ -373,8 +377,7 @@ function callRecipeApi (recipe) {
           let calories = response['hits'][i]['recipe']['calories'];
           console.log('calories', calories);
           calories = Math.ceil(calories / servings) ;
-          let output = `The ingredient list of ${recipe_name} are ${ingredients} and this
-                        recipe has ${calories} calories for a single serving!  \nIt feels good to teach people how to make unique and delicious food :)`;
+          let output = `The ingredient list of ${recipe_name} are ${ingredients} and this recipe has ${calories} calories for a single serving!  \nIt feels good to teach people how to make unique and delicious food :)`;
           resolve(output);
 
         }
@@ -404,8 +407,7 @@ function callRecipeDietApi (recipe, diet) {
         if (response['count'] === 0) {
           let asked_recipe = response['q'];
           let num_of_ingr = response['params']['ingr'][0];
-          let output = `Sorry, I couldn't find recipe for ${asked_recipe} :(
-                        Can you please verify if you have entered the food item correctly or try again with different name.`;
+          let output = `Sorry, I couldn't find recipe for ${asked_recipe}  \n Can you please verify if you have entered the food item correctly or try again with different name.`;
 
           resolve(output);
 
@@ -422,8 +424,7 @@ function callRecipeDietApi (recipe, diet) {
           let calories = response['hits'][i]['recipe']['calories'];
           console.log('calories', calories);
           calories = Math.ceil(calories / servings) ;
-          let output = `The ingredient list of ${recipe_name} are ${ingredients} and this
-                        recipe has ${calories} calories for a single serving!  \nIt feels good to teach people how to make unique and delicious food :)`;
+          let output = `The ingredient list of ${recipe_name} are ${ingredients} and this recipe has ${calories} calories for a single serving!  \nIt feels good to teach people how to make unique and delicious food :)`;
           resolve(output);
 
         }
@@ -453,8 +454,7 @@ function callNumIngredientApi (recipe, num_of_ingredient) {
         if (response['count'] === 0) {
           let asked_recipe = response['q'];
           let num_of_ingr = response['params']['ingr'][0];
-          let output = `Sorry, I couldn't find recipe for ${asked_recipe} with ${num_of_ingr} ingredients!
-                        Please verify if the name of the recipe was entered correctly or else try again with some different recipe.`;
+          let output = `Sorry, I couldn't find recipe for ${asked_recipe} with ${num_of_ingr} ingredients!  \n Please verify if the name of the recipe was entered correctly or else try again with some different recipe.`;
 
           resolve(output);
 
@@ -475,8 +475,7 @@ function callNumIngredientApi (recipe, num_of_ingredient) {
           nutrition = Math.ceil(nutrition);
           console.log('calories_calorie_intent', calories);
 
-          let output = `The ingredient list of ${recipe_name} Recipe are ${ingredients} and this recipe has
-                        ${calories} calories with daily nutrition value of ${nutrition}% which will serve ${servings} people !  \nIt feels good to teach people how to make unique and delicious food :)`;
+          let output = `The ingredient list of ${recipe_name} Recipe are ${ingredients} and this recipe has ${calories} calories with daily nutrition value of ${nutrition}% which will serve ${servings} people !  \nIt feels good to teach people how to make unique and delicious food :)`;
 
           resolve(output);
 
@@ -507,8 +506,7 @@ function callNumIngredientDietApi (recipe, num_of_ingredient, diet) {
         if (response['count'] === 0) {
           let asked_recipe = response['q'];
           let num_of_ingr = response['params']['ingr'][0];
-          let output = `Sorry, I couldn't find recipe for ${asked_recipe} with ${num_of_ingr} ingredients!
-                        Please verify if the name of the recipe was entered correctly or else try again with some different recipe.`;
+          let output = `Sorry, I couldn't find recipe for ${asked_recipe} with ${num_of_ingr} ingredients!  \n Please verify if the name of the recipe was entered correctly or else try again with some different recipe.`;
 
           resolve(output);
 
@@ -529,8 +527,7 @@ function callNumIngredientDietApi (recipe, num_of_ingredient, diet) {
           nutrition = Math.ceil(nutrition);
           console.log('calories_calorie_intent', calories);
 
-          let output = `The ingredient list of ${recipe_name} Recipe are ${ingredients} and this recipe has
-                        ${calories} calories with daily nutrition value of ${nutrition}% which will serve ${servings} people !  \nIt feels good to teach people how to make unique and delicious food :)`;
+          let output = `The ingredient list of ${recipe_name} Recipe are ${ingredients} and this recipe has ${calories} calories with daily nutrition value of ${nutrition}% which will serve ${servings} people !  \nIt feels good to teach people how to make unique and delicious food :)`;
 
           resolve(output);
 
@@ -544,6 +541,107 @@ function callNumIngredientDietApi (recipe, num_of_ingredient, diet) {
   });
 }
 
+exports.superhero = functions.https.onRequest((request, response) => {
+
+  var name_superhero = request.body.queryResult.parameters.runs.number;
+
+  superHero(name_superhero).then((output) => {
+      // response.send({'fulfillmentText': `Success!!!` });
+      console.log("output in exports", output);
+      let res = output.response ;
+      console.log("output.response", res);
+      if(res === 'success'){
+
+        var result_arr = output.results ;
+        var text_1 = `I found ${result_arr.length} results for your superhero.  \n I am displaying the best SuperHero for you.` ;
+        console.log("text_1", text_1);
+        let length1 = result_arr.length ;
+        console.log("length1", length1);
+        i = Math.floor(Math.random() * length1);
+        console.log("Value of i", i);
+        let super_name = output.results[i].name ;
+        console.log("super_name", super_name);
+        let intelligence = output.results[i].powerstats.intelligence ;
+        let strength = output.results[i].powerstats.strength ;
+        let speed = output.results[i].powerstats.speed ;
+        let durability = output.results[i].powerstats.durability ;
+        let power = output.results[i].powerstats.power ;
+        let combat = output.results[i].powerstats.combat ;
+        let image_superhero = output.results[i].image.url ;
+
+        console.log("intelligence", intelligence);
+        console.log("combat", combat);
+        console.log("image_url", image_superhero);
+
+        response.send({'fulfillmentText': `Success!!!` });
+
+      } else {
+
+        response.send({'fulfillmentText': `Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
+      }
+      return console.log(output);
+  }).catch(() => {
+    console.log('catch block of superhero executed');
+    response.send({'fulfillmentText' : `supero catch block executed`});
+  })
+
+});
+
+
+
+function superHero (name) {
+  return new Promise((resolve, reject) => {
+    let path_superhero = '/api.php/' + superhero_access_token + '/search/batman'   ;
+    console.log('API Request: ' + host_superhero + path_superhero);
+
+    http.get({host: host_superhero, path: path_superhero}, (res) => {
+      let body = '';
+      res.on('data', (d) => { body += d;});
+      res.on('end', () => {
+        console.log("BODY:", body);
+        let output = JSON.parse(body);
+        resolve(output);
+        //let response = JSON.parse(body);
+        // if (response['count'] === 0) {
+        //   let asked_recipe = response['q'];
+        //   let num_of_ingr = response['params']['ingr'][0];
+        //   let output = `Sorry, I couldn't find recipe for ${asked_recipe} with ${num_of_ingr} ingredients!  \n Please verify if the name of the recipe was entered correctly or else try again with some different recipe.`;
+        //
+        //   resolve(output);
+        //
+        // } else {
+        //   let length = response['hits'].length ;
+        //   let i = Math.floor(Math.random() * length);
+        //   console.log('The index number of the response is', i);
+        //   let recipe_name = response['hits'][i]['recipe']['label'];
+        //   console.log('recipe_name_calorie_intent', recipe_name);
+        //   let servings = response['hits'][i]['recipe']['yield'];
+        //   let ingredient_list = response['hits'][i]['recipe']['ingredientLines'];
+        //   var ingredients = '';
+        //   ingredient_list.forEach((doc) => {ingredients = ingredients + doc + '  \n'});
+        //   console.log('ingredient_list_calorie_intent', ingredient_list);
+        //   let calories = response['hits'][i]['recipe']['calories'];
+        //   calories = Math.ceil(calories);
+        //   let nutrition = response['hits'][i]['recipe']['totalDaily']['ENERC_KCAL']['quantity'];
+        //   nutrition = Math.ceil(nutrition);
+        //   console.log('calories_calorie_intent', calories);
+        //
+        //   let output = `The ingredient list of ${recipe_name} Recipe are ${ingredients} and this recipe has ${calories} calories with daily nutrition value of ${nutrition}% which will serve ${servings} people !  \nIt feels good to teach people how to make unique and delicious food :)`;
+        //
+        //   resolve(output);
+        //
+        // }
+
+      });
+      res.on('error', (error) => {
+        console.log(`Error while calling the API ${error}` );
+      });
+    });
+  });
+}
+
+
+
 
 
 exports.oddeven = functions.https.onRequest((request, response) => {
@@ -554,13 +652,13 @@ exports.oddeven = functions.https.onRequest((request, response) => {
 
   let userStorage = request.body.originalDetectIntentRequest.payload.user.userStorage || JSON.stringify({});
   let userId;
-  console.log("userStorage", userStorage);
+  //console.log("userStorage", userStorage);
   userStorage = JSON.parse(userStorage);
-  console.log("userStorage_after_parsing", userStorage);
+  //console.log("userStorage_after_parsing", userStorage);
 
   if (userStorage.hasOwnProperty('userId')) {
     userId = userStorage.userId;
-    console.log("userID In if", userId);
+    //console.log("userID In if", userId);
   } else {
     // Uses the "uuid" package. You can get this with "npm install --save uuid"
     // var uuid = require('uuid/v4');
@@ -583,10 +681,43 @@ exports.oddeven = functions.https.onRequest((request, response) => {
       runs = Math.floor(runs);
       if(runs <= 0 || runs > 6){
         response.send({
-          'fulfillmentText' : `You can only hit from 1 run to 6 runs.`,
           'payload': {
             'google': {
-              'userStorage': JSON.stringify(userStorage)
+              'userStorage': JSON.stringify(userStorage),
+              "expectUserResponse": true,
+              "richResponse": {
+                "items": [
+                  {
+                    "simpleResponse": {
+                      "textToSpeech": `You can only hit from 1 run to 6 runs.`
+                    }
+                  }
+                ],
+                "suggestions": [
+                  {
+                    "title": "1"
+                  },
+                  {
+                    "title": "2"
+                  },
+                  {
+                    "title": "3"
+                  },
+                  {
+                    "title": "4"
+                  },
+                  {
+                    "title": "5"
+                  },
+                  {
+                    "title": "6"
+                  }
+                ]
+                // "linkOutSuggestion": {
+                //   "destinationName": "Website",
+                //   "url": "https://assistant.google.com"
+                // }
+              }
             }
           }
 
@@ -604,10 +735,36 @@ exports.oddeven = functions.https.onRequest((request, response) => {
           if(!doc.exists){
             console.log('No duch document!');
             response.send({
-              'fulfillmentText' : `We both hit ${runs} runs. Sorry, You're out on the first ball! \nUnluckily, Your total score is 0 run.  \nWould you like to play again with me?`,
               'payload': {
                 'google': {
-                  'userStorage': JSON.stringify(userStorage)
+                  'userStorage': JSON.stringify(userStorage),
+                  "expectUserResponse": true,
+                  "richResponse": {
+                    "items": [
+                      {
+                        "simpleResponse": {
+                          "textToSpeech": `We both hit ${runs} runs. Sorry, You're out on the first ball!`
+                        }
+                      },
+                      {
+                        "simpleResponse": {
+                          "textToSpeech": `Unluckily, Your total score is 0 run.  \nWould you like to play again with me?`
+                        }
+                      }
+                    ],
+                    "suggestions": [
+                      {
+                        "title": "yes"
+                      },
+                      {
+                        "title": "no"
+                      }
+                    ]
+                    // "linkOutSuggestion": {
+                    //   "destinationName": "Website",
+                    //   "url": "https://assistant.google.com"
+                    // }
+                  }
                 }
               }
 
@@ -629,10 +786,36 @@ exports.oddeven = functions.https.onRequest((request, response) => {
             firestore.collection('game').doc(userId).set(card)
               .then(() => {
                 response.send({
-                  'fulfillmentText' : `We both hit ${runs} runs. Sorry, You're out!  \nYour total score is ${runs_scored} runs.  \nWould you like to play again with me?`,
                   'payload': {
                     'google': {
-                      'userStorage': JSON.stringify(userStorage)
+                      'userStorage': JSON.stringify(userStorage),
+                      "expectUserResponse": true,
+                      "richResponse": {
+                        "items": [
+                          {
+                            "simpleResponse": {
+                              "textToSpeech": `We both hit ${runs} runs. Sorry, You're out!  \nYour total score is ${runs_scored} runs.`
+                            }
+                          },
+                          {
+                            "simpleResponse": {
+                              "textToSpeech": `Would you like to play again with me?`
+                            }
+                          }
+                        ],
+                        "suggestions": [
+                          {
+                            "title": "yes"
+                          },
+                          {
+                            "title": "no"
+                          }
+                        ]
+                        // "linkOutSuggestion": {
+                        //   "destinationName": "Website",
+                        //   "url": "https://assistant.google.com"
+                        // }
+                      }
                     }
                   }
 
@@ -670,6 +853,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
         card['times_played'] = 0;
         card['max_runs'] = 0;
         console.log(card);
+        //I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.
         fields = firestore.collection('game').doc(userId);
         fields.get()
         .then( doc => {
@@ -677,10 +861,44 @@ exports.oddeven = functions.https.onRequest((request, response) => {
               firestore.collection('game').doc(userId).set(card)
                 .then(() => {
                   response.send({
-                    'fulfillmentText' : `I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.`,
                     'payload': {
                       'google': {
-                        'userStorage': JSON.stringify(userStorage)
+                        'userStorage': JSON.stringify(userStorage),
+                        "expectUserResponse": true,
+                        "richResponse": {
+                          "items": [
+                            {
+                              "simpleResponse": {
+                                "textToSpeech": `I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.`
+                              }
+                            }
+                          ],
+                          "suggestions": [
+                            {
+                              "title": "1"
+                            },
+                            {
+                              "title": "2"
+                            },
+                            {
+                              "title": "3"
+                            },
+                            {
+                              "title": "4"
+                            },
+                            {
+                              "title": "5"
+                            },
+                            {
+                              "title": "6"
+                            }
+                          ]
+                          // "linkOutSuggestion": {
+                          //   "destinationName": "Website",
+                          //   "url": "https://assistant.google.com"
+                          // }
+                        }
+
                       }
                     }
                   });
@@ -711,14 +929,59 @@ exports.oddeven = functions.https.onRequest((request, response) => {
               firestore.collection('game').doc(userId).set(card)
                 .then(() => {
                   response.send({
-                    'fulfillmentText' : `I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.`,
                     'payload': {
                       'google': {
-                        'userStorage': JSON.stringify(userStorage)
+                        'userStorage': JSON.stringify(userStorage),
+                        "expectUserResponse": true,
+                        "richResponse": {
+                          "items": [
+                            {
+                              "simpleResponse": {
+                                "textToSpeech": `I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.`
+                              }
+                            }
+                          ],
+                          "suggestions": [
+                            {
+                              "title": "1"
+                            },
+                            {
+                              "title": "2"
+                            },
+                            {
+                              "title": "3"
+                            },
+                            {
+                              "title": "4"
+                            },
+                            {
+                              "title": "5"
+                            },
+                            {
+                              "title": "6"
+                            }
+                          ]
+                          // "linkOutSuggestion": {
+                          //   "destinationName": "Website",
+                          //   "url": "https://assistant.google.com"
+                          // }
+                        }
+
                       }
                     }
 
                   });
+
+                  // response.send({
+                  //   'fulfillmentText' : `I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.`,
+                  //   'payload': {
+                  //     'google': {
+                  //       'userStorage': JSON.stringify(userStorage)
+                  //     }
+                  //   }
+                  //
+                  // });
+
                   return console.log("total runs in card", card);
                 })
                 .catch((e => {
@@ -742,12 +1005,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
           console.log('error from database', e);
         }));
 
-        // calloddeven().then((output) => {
-        //   card = output;
-        //   return console.log("card value after function returns", card);
-        // }).catch(() => {
-        //   console.log("function calloddeven not called properly" );
-        // })
+
         }
       }
 
@@ -764,10 +1022,31 @@ exports.oddeven = functions.https.onRequest((request, response) => {
         if(!doc.exists){
           console.log('No such document!');
           response.send({
-            'fulfillmentText' : `You have scored a maximum of 0 run. Would you like to play again?`,
             'payload': {
               'google': {
-                'userStorage': JSON.stringify(userStorage)
+                'userStorage': JSON.stringify(userStorage),
+                "expectUserResponse": true,
+                "richResponse": {
+                  "items": [
+                    {
+                      "simpleResponse": {
+                        "textToSpeech": `You have scored a maximum of 0 run. Would you like to play again?`
+                      }
+                    }
+                  ],
+                  "suggestions": [
+                    {
+                      "title": "yes"
+                    },
+                    {
+                      "title": "no"
+                    }
+                  ],
+                  // "linkOutSuggestion": {
+                  //   "destinationName": "Website",
+                  //   "url": "https://assistant.google.com"
+                  // }
+                }
               }
             }
           });
@@ -777,10 +1056,33 @@ exports.oddeven = functions.https.onRequest((request, response) => {
           var num_plays = max_card['times_played'];
 
           response.send({
-            'fulfillmentText' : `You have scored a maximum of ${max_runs} runs in ${num_plays} matches. Keep up the good play!  \nWould you like to challenge me again?`,
             'payload': {
               'google': {
-                'userStorage': JSON.stringify(userStorage)
+                'userStorage': JSON.stringify(userStorage),
+                "expectUserResponse": true,
+                "richResponse": {
+                  "items": [
+                    {
+                      "simpleResponse": {
+                        "textToSpeech": `You have scored a maximum of ${max_runs} runs in ${num_plays} matches. Keep up the good play!`
+                      }
+                    },
+                    {
+                      "simpleResponse": {
+                        "textToSpeech": `Would you like to play with me again?`
+                      }
+                    }
+                  ],
+                  "suggestions": [
+                    {
+                      "title": "yes"
+                    },
+                    {
+                      "title": "no"
+                    }
+                  ]
+
+                }
               }
             }
 
@@ -935,6 +1237,8 @@ exports.webhook = functions.https.onRequest((request, response) => {
                 });
             }))
 
+
+
         break;
       }
         case 'countFeedbacks':{
@@ -981,30 +1285,6 @@ exports.webhook = functions.https.onRequest((request, response) => {
               })
           }));
 
-
-
-          // firestore.collection('users').get()
-          //   .then((snapshot) => {
-          //
-          //     var feedbacks = [];
-          //     snapshot.forEach((doc) => { feedbacks.push(doc.data())});
-          //
-          //     var feedback_count = `you have given ${feedbacks.length} feedbacks to us. \n
-          //                           Do you want to see all your feedbacks?`;
-          //
-          //     response.send({
-          //       'fulfillmentText' : feedback_count
-          //     });
-          //     return console.log("showfeedbacks", feedback_count);
-          //   })
-          //   .catch((err) => {
-          //     console.log("error getting document", err);
-          //
-          //     response.send({
-          //       'fulfillmentText' : `something went wrong while reading from the database`
-          //     })
-          //   })
-
           break;
         }
 
@@ -1049,8 +1329,592 @@ exports.webhook = functions.https.onRequest((request, response) => {
     }
 });
 
+//
+// var medical_json = {
+//   "Symptomatic Cholelithiasis": {
+//       "Symptoms": "Typical symptoms of cholelithiasis include pain in the upper right belly and nausea. Other symptoms may include vomiting and bloating. Pain may be worse after eating, especially after fatty foods.",
+//       "Risks": "Gallstones are more common in women and people who are overweight. They also become more common as people age, and are uncommon in children and teenagers. Gallstones form over time and sometimes never lead to symptoms. They cause symptoms when a gallstone gets stuck in the outlet of the gallbladder or in the bile duct when the gallbladder squeezes bile into the intestine.",
+//       "Diagnosis": "Diagnosis is based on assessment of the symptoms and physical examination. An ultrasound scan can show the presence of gallstones in the gallbladder or the bile duct. Blood tests to test for infection and liver function might be necessary.",
+//       "What is symptomatic cholelithiasis?": "Cholelithiasis is a condition where gallstones are formed in the gallbladder, liver or bile duct. The gallbladder stores bile, a liquid produced by the liver to digest fatty foods. After eating, the gallbladder squeezes bile down the bile tract and into the intestine. The gallstone(s) usually develop over time and exist before symptoms occur. It is a common condition that can affect everyone but occurs more often in women than in men and becomes more common with age. Typical symptoms include short-duration, repetitive pain in the upper and upper right region of the belly.",
+//       "Prevention": "Avoiding fatty food and losing weight gradually may help avoid episodes of symptoms.",
+//       "Treatment": "Treatment of cholelithiasis involves management of pain and, eventually, removal of the gallstones. Pain-relieving medications (ibuprofen, paracetamol) can be helpful to manage pain. Some people may need antibiotics if there are signs of infection of the gallbladder or bile duct. Surgical removal of the gallbladder (a cholecystectomy) is a common procedure and is helpful in curing symptomatic cholelithiasis."
+//   }
+// };
+
+// var string_medical_data = JSON.stringify(medical_json);
+// var json_medical = JSON.parse(string_medical_data);
+
+// exports.medical = functions.https.onRequest((request, response) => {
+//
+// var batch = firestore.batch();
+//   for(var myKey in json_medical) {
+//     var myKeyRef = firestore.collection('medical').doc(myKey);
+//     batch.set(myKeyRef, json_medical[myKey]);
+//   }
+//   batch.commit().then(function () {
+//     response.send({
+//       'fulfillmentText': `Success!!!`
+//     });
+//     return console.log("added all medical values in database")
+//   })
+//   .catch((e => {
+//     console.log(e);
+//
+//     response.send({'fulfillmentText':`Failed!!!`});
+//   }))
+//
+// });
+
+var country_json = {
+  "Spain" : {
+    1:{
+      "pack_rental":646,
+      "effective_rental":646,
+      "validity":1,
+      "incoming_calls":"unlimited",
+      "free_data":"500 MB",
+      "free_minutes_India_local":100,
+      "free_sms":100
+    },
+    10:{
+      "pack_rental":2998,
+      "effective_rental":299,
+      "validity":10,
+      "incoming_calls":"unlimited",
+      "free_data":"3 GB",
+      "free_minutes_India_local":250,
+      "free_sms":100
+    },
+    30:{
+      "pack_rental":3997,
+      "effective_rental":133,
+      "validity":30,
+      "incoming_calls":"unlimited",
+      "free_data":"5 GB",
+      "free_minutes_India_local":500,
+      "free_sms":100
+    }
+  },
+  "United States of America" : {
+    1:{
+      "pack_rental":646,
+      "effective_rental":646,
+      "validity":1,
+      "incoming_calls":"unlimited",
+      "free_data":"500 MB",
+      "free_minutes_India_local":100,
+      "free_sms":100
+    },
+    10:{
+      "pack_rental":2998,
+      "effective_rental":299,
+      "validity":10,
+      "incoming_calls":"unlimited",
+      "free_data":"3 GB",
+      "free_minutes_India_local":250,
+      "free_sms":100
+    },
+    30:{
+      "pack_rental":3997,
+      "effective_rental":133,
+      "validity":30,
+      "incoming_calls":"unlimited",
+      "free_data":"5 GB",
+      "free_minutes_India_local":500,
+      "free_sms":100
+    }
+  },
+  "Indonesia" : {
+    1:{
+      "pack_rental":646,
+      "effective_rental":646,
+      "validity":1,
+      "incoming_calls":"unlimited",
+      "free_data":"500 MB",
+      "free_minutes_India_local":100,
+      "free_sms":100
+    },
+    10:{
+      "pack_rental":2998,
+      "effective_rental":299,
+      "validity":10,
+      "incoming_calls":"unlimited",
+      "free_data":"3 GB",
+      "free_minutes_India_local":250,
+      "free_sms":100
+    },
+    30:{
+      "pack_rental":3997,
+      "effective_rental":133,
+      "validity":30,
+      "incoming_calls":"unlimited",
+      "free_data":"5 GB",
+      "free_minutes_India_local":500,
+      "free_sms":100
+    }
+  },
+  "United Kingdom of Great Britain and Northern Ireland" : {
+    1:{
+      "pack_rental":646,
+      "effective_rental":646,
+      "validity":1,
+      "incoming_calls":"unlimited",
+      "free_data":"500 MB",
+      "free_minutes_India_local":100,
+      "free_sms":100
+    },
+    10:{
+      "pack_rental":2998,
+      "effective_rental":299,
+      "validity":10,
+      "incoming_calls":"unlimited",
+      "free_data":"3 GB",
+      "free_minutes_India_local":250,
+      "free_sms":100
+    },
+    30:{
+      "pack_rental":3997,
+      "effective_rental":133,
+      "validity":30,
+      "incoming_calls":"unlimited",
+      "free_data":"5 GB",
+      "free_minutes_India_local":500,
+      "free_sms":100
+    }
+  },
+  "Sri Lanka" : {
+    1:{
+      "pack_rental":498,
+      "effective_rental":498,
+      "validity":1,
+      "incoming_calls":"unlimited",
+      "free_data":"500 MB",
+      "free_minutes_India_local":100,
+      "free_sms":100
+    },
+    10:{
+      "pack_rental":1197,
+      "effective_rental":119,
+      "validity":10,
+      "incoming_calls":"unlimited",
+      "free_data":"3 GB",
+      "free_minutes_India_local":250,
+      "free_sms":100
+    },
+    30:{
+      "pack_rental":2498,
+      "effective_rental":83,
+      "validity":30,
+      "incoming_calls":"unlimited",
+      "free_data":"5 GB",
+      "free_minutes_India_local":500,
+      "free_sms":100
+    }
+  },
+  "Singapore" : {
+    1:{
+      "pack_rental":498,
+      "effective_rental":498,
+      "validity":1,
+      "incoming_calls":"unlimited",
+      "free_data":"500 MB",
+      "free_minutes_India_local":100,
+      "free_sms":100
+    },
+    10:{
+      "pack_rental":1197,
+      "effective_rental":119,
+      "validity":10,
+      "incoming_calls":"unlimited",
+      "free_data":"3 GB",
+      "free_minutes_India_local":250,
+      "free_sms":100
+    },
+    30:{
+      "pack_rental":2498,
+      "effective_rental":83,
+      "validity":30,
+      "incoming_calls":"unlimited",
+      "free_data":"5 GB",
+      "free_minutes_India_local":500,
+      "free_sms":100
+    }
+  },
+  "Malaysia" : {
+    1:{
+      "pack_rental":498,
+      "effective_rental":498,
+      "validity":1,
+      "incoming_calls":"unlimited",
+      "free_data":"500 MB",
+      "free_minutes_India_local":100,
+      "free_sms":100
+    },
+    10:{
+      "pack_rental":1197,
+      "effective_rental":119,
+      "validity":10,
+      "incoming_calls":"unlimited",
+      "free_data":"3 GB",
+      "free_minutes_India_local":250,
+      "free_sms":100
+    },
+    30:{
+      "pack_rental":2498,
+      "effective_rental":83,
+      "validity":30,
+      "incoming_calls":"unlimited",
+      "free_data":"5 GB",
+      "free_minutes_India_local":500,
+      "free_sms":100
+    }
+  },
+  "Nepal" : {
+    1:{
+      "pack_rental":646,
+      "effective_rental":646,
+      "validity":1,
+      "incoming_calls":"unlimited",
+      "free_data":"500 MB",
+      "free_minutes_India_local":100,
+      "free_sms":100
+    },
+    10:{
+      "pack_rental":2998,
+      "effective_rental":299,
+      "validity":10,
+      "incoming_calls":"unlimited",
+      "free_data":"3 GB",
+      "free_minutes_India_local":250,
+      "free_sms":100
+    },
+    30:{
+      "pack_rental":3997,
+      "effective_rental":133,
+      "validity":30,
+      "incoming_calls":"unlimited",
+      "free_data":"5 GB",
+      "free_minutes_India_local":500,
+      "free_sms":100
+    }
+  },
+  "Hong Kong" : {
+    1:{
+      "pack_rental":646,
+      "effective_rental":646,
+      "validity":1,
+      "incoming_calls":"unlimited",
+      "free_data":"500 MB",
+      "free_minutes_India_local":100,
+      "free_sms":100
+    },
+    10:{
+      "pack_rental":2998,
+      "effective_rental":299,
+      "validity":10,
+      "incoming_calls":"unlimited",
+      "free_data":"3 GB",
+      "free_minutes_India_local":250,
+      "free_sms":100
+    },
+    30:{
+      "pack_rental":3997,
+      "effective_rental":133,
+      "validity":30,
+      "incoming_calls":"unlimited",
+      "free_data":"5 GB",
+      "free_minutes_India_local":500,
+      "free_sms":100
+    }
+  },
+  "Thailand" : {
+    1:{
+      "pack_rental":498,
+      "effective_rental":498,
+      "validity":1,
+      "incoming_calls":"unlimited",
+      "free_data":"500 MB",
+      "free_minutes_India_local":100,
+      "free_sms":100
+    },
+    10:{
+      "pack_rental":1197,
+      "effective_rental":119,
+      "validity":10,
+      "incoming_calls":"unlimited",
+      "free_data":"3 GB",
+      "free_minutes_India_local":250,
+      "free_sms":100
+    },
+    30:{
+      "pack_rental":2498,
+      "effective_rental":83,
+      "validity":30,
+      "incoming_calls":"unlimited",
+      "free_data":"5 GB",
+      "free_minutes_India_local":500,
+      "free_sms":100
+    }
+  },
+  "Morocco" : {
+    1:{
+      "pack_rental":994,
+      "effective_rental":994,
+      "validity":1,
+      "incoming_calls":"100 mins",
+      "free_data":"500 MB",
+      "free_minutes_India_local":100,
+      "free_sms":100
+    },
+    10:{
+      "pack_rental":3995,
+      "effective_rental":399,
+      "validity":10,
+      "incoming_calls":"250 mins",
+      "free_data":"3 GB",
+      "free_minutes_India_local":250,
+      "free_sms":100
+    },
+    30:{
+      "pack_rental":6999,
+      "effective_rental":233,
+      "validity":30,
+      "incoming_calls":"500 mins",
+      "free_data":"5 GB",
+      "free_minutes_India_local":500,
+      "free_sms":100
+    }
+  }
+}
+
+exports.airtel = functions.https.onRequest((request, response) => {
+  var days = request.body.queryResult.parameters.days ;
+  console.log("days", days);
+
+  var country = request.body.queryResult.parameters.country ;
+  console.log("country", country);
+
+  var string_country = JSON.stringify(country_json);
+  var parse_country = JSON.parse(string_country);
+
+  var day_plan;
+
+  if(days < 0){
+    response.send({'fulfillmentText' : `Days cannot be in negative`});
+  } else if(days === 1){
+    day_plan = 1;
+
+    var pack_rental = parse_country[country][day_plan].pack_rental ;
+    var effective_rental = parse_country[country][day_plan].effective_rental ;
+    var validity = parse_country[country][day_plan].validity ;
+    var incoming_calls = parse_country[country][day_plan].incoming_calls ;
+    var free_data = parse_country[country][day_plan].free_data ;
+    var free_minutes_India_local = parse_country[country][day_plan].free_minutes_India_local ;
+    var free_sms = parse_country[country][day_plan].free_sms ;
+
+    response.send({
+      'payload': {
+        'google': {
+          "expectUserResponse": true,
+          "richResponse": {
+            "items": [
+              {
+                "simpleResponse": {
+                  "textToSpeech": "Awesome! Finding the best pack for you."
+                }
+              },
+              {
+                "simpleResponse": {
+                  "textToSpeech": `I feel great to hear that you're visiting ${country} so the best plan I can offer for your entourage is Rs ${pack_rental} per day for ${days} day which cost you Rs ${pack_rental * days}  \n This pack includes ${incoming_calls} incoming calls, 500 MB free data, ${free_minutes_India_local * days} free minutes to India or Local and ${free_sms * days} SMSs with ${validity * days} day validity.`
+                }
+              }
+            ],
+            "suggestions": [
+              {
+                "title": "Purchase this pack"
+              },
+              {
+                "title": "exit"
+              }
+            ]
+          }
+        }
+      }
 
 
+    });
+
+  } else if(days === 2 || days === 3 || days === 4){
+    day_plan = 1;
+
+    pack_rental = parse_country[country][day_plan].pack_rental ;
+    effective_rental = parse_country[country][day_plan].effective_rental ;
+    validity = parse_country[country][day_plan].validity ;
+    incoming_calls = parse_country[country][day_plan].incoming_calls ;
+    free_data = parse_country[country][day_plan].free_data ;
+    free_minutes_India_local = parse_country[country][day_plan].free_minutes_India_local ;
+    free_sms = parse_country[country][day_plan].free_sms ;
+
+    response.send({
+      'payload': {
+        'google': {
+          "expectUserResponse": true,
+          "richResponse": {
+            "items": [
+              {
+                "simpleResponse": {
+                  "textToSpeech": "Awesome! Finding the best pack for you."
+                }
+              },
+              {
+                "simpleResponse": {
+                  "textToSpeech": `I feel great to hear that you're visiting ${country} so the best plan I can offer for your entourage is Rs ${effective_rental} per day for ${days} days which cost you ${pack_rental * days}  \n This pack includes ${incoming_calls} incoming calls, 1000 MB free data, ${free_minutes_India_local * days} free minutes to India or Local and ${free_sms * days} SMSs with ${validity * days} days validity.`
+                }
+              }
+            ],
+            "suggestions": [
+              {
+                "title": "Purchase this pack"
+              },
+              {
+                "title": "exit"
+              }
+            ]
+          }
+        }
+      }
+
+    });
+
+  } else if(days <= 10){
+    day_plan = 10;
+
+    pack_rental = parse_country[country][day_plan].pack_rental ;
+    effective_rental = parse_country[country][day_plan].effective_rental ;
+    validity = parse_country[country][day_plan].validity ;
+    incoming_calls = parse_country[country][day_plan].incoming_calls ;
+    free_data = parse_country[country][day_plan].free_data ;
+    free_minutes_India_local = parse_country[country][day_plan].free_minutes_India_local ;
+    free_sms = parse_country[country][day_plan].free_sms ;
+
+    response.send({
+      'payload': {
+        'google': {
+          "expectUserResponse": true,
+          "richResponse": {
+            "items": [
+              {
+                "simpleResponse": {
+                  "textToSpeech": "Awesome! Finding the best pack for you."
+                }
+              },
+              {
+                "simpleResponse": {
+                  "textToSpeech": `I feel great to hear that you're visiting ${country} so the best plan I can offer for your entourage is Rs ${effective_rental} per day for 10 days which cost you ${pack_rental}  \nThis pack includes ${incoming_calls} incoming calls, ${free_data} free data, ${free_minutes_India_local} free minutes to India or Local and ${free_sms} SMSs with ${validity} days validity.`
+                }
+              }
+            ],
+            "suggestions": [
+              {
+                "title": "Purchase this pack"
+              },
+              {
+                "title": "exit"
+              }
+            ]
+          }
+        }
+      }
+
+    });
+
+  } else if(days === 11) {
+    day_plan = 10;
+    var rem_days = days % day_plan ;
+    pack_rental = parse_country[country][day_plan].pack_rental ;
+    effective_rental = parse_country[country][day_plan].effective_rental ;
+    validity = parse_country[country][day_plan].validity ;
+    incoming_calls = parse_country[country][day_plan].incoming_calls ;
+    free_data = parse_country[country][day_plan].free_data ;
+    free_minutes_India_local = parse_country[country][day_plan].free_minutes_India_local ;
+    free_sms = parse_country[country][day_plan].free_sms ;
+
+    response.send({
+      'payload': {
+        'google': {
+          "expectUserResponse": true,
+          "richResponse": {
+            "items": [
+              {
+                "simpleResponse": {
+                  "textToSpeech": "Awesome! Finding the best pack for you."
+                }
+              },
+              {
+                "simpleResponse": {
+                  "textToSpeech": `I feel great to hear that you're visiting ${country} so the best plan I can offer for your entourage is Rs ${effective_rental} per day for 10 days and Rs 646 for 11th day which cost you ${pack_rental + (646 * rem_days)}  \n This pack includes ${incoming_calls} incoming calls, 3500 MB free data, ${free_minutes_India_local + (100 * rem_days)} free minutes to India or Local and ${free_sms + (100*rem_days)} SMSs with ${validity + (rem_days)} days validity.`
+                }
+              }
+            ],
+            "suggestions": [
+              {
+                "title": "Purchase this pack"
+              },
+              {
+                "title": "exit"
+              }
+            ]
+          }
+        }
+      }
+
+    });
+
+  } else {
+    day_plan = 30;
+
+    pack_rental = parse_country[country][day_plan].pack_rental ;
+    effective_rental = parse_country[country][day_plan].effective_rental ;
+    validity = parse_country[country][day_plan].validity ;
+    incoming_calls = parse_country[country][day_plan].incoming_calls ;
+    free_data = parse_country[country][day_plan].free_data ;
+    free_minutes_India_local = parse_country[country][day_plan].free_minutes_India_local ;
+    free_sms = parse_country[country][day_plan].free_sms ;
+
+    response.send({
+      'payload': {
+        'google': {
+          "expectUserResponse": true,
+          "richResponse": {
+            "items": [
+              {
+                "simpleResponse": {
+                  "textToSpeech": "Awesome! Finding the best pack for you."
+                }
+              },
+              {
+                "simpleResponse": {
+                  "textToSpeech": `I feel great to hear that you're visiting ${country} so the best plan I can offer for your entourage is Rs ${effective_rental} per day for ${day_plan} days which cost you Rs ${pack_rental}  \n This pack includes ${incoming_calls} incoming calls, ${free_data} free data, ${free_minutes_India_local} free minutes to India or Local and ${free_sms} SMSs with ${validity} days validity.`
+                }
+              }
+            ],
+            "suggestions": [
+              {
+                "title": "Purchase this pack"
+              },
+              {
+                "title": "exit"
+              }
+            ]
+          }
+        }
+      }
+
+    });
+  }
+
+
+});
 
 // exports.testoddeven = functions.https.onRequest((request, response) => {
 //
