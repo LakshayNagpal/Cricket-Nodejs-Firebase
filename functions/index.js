@@ -553,7 +553,7 @@ exports.superhero = functions.https.onRequest((request, response) => {
       if(res === 'success'){
 
         var result_arr = output.results ;
-        var text_1 = `I found ${result_arr.length} results for your superhero.  \n I am displaying the best SuperHero for you.` ;
+        var text_1 = `I found ${result_arr.length} results for your superhero AND  \nThe best Superhero I found for you is` ;
         console.log("text_1", text_1);
         let length1 = result_arr.length ;
         console.log("length1", length1);
@@ -561,6 +561,7 @@ exports.superhero = functions.https.onRequest((request, response) => {
         console.log("Value of i", i);
         let super_name = output.results[i].name ;
         console.log("super_name", super_name);
+        let super_publisher = output.results[i].biography.publisher ;
         let intelligence = output.results[i].powerstats.intelligence ;
         let strength = output.results[i].powerstats.strength ;
         let speed = output.results[i].powerstats.speed ;
@@ -573,10 +574,44 @@ exports.superhero = functions.https.onRequest((request, response) => {
         console.log("combat", combat);
         console.log("image_url", image_superhero);
 
-        response.send({'fulfillmentText': `Success!!!` });
+        response.send({
+        "payload": {
+          "google": {
+            "expectUserResponse": true,
+            "richResponse": {
+              "items": [
+                {
+                  "simpleResponse": {
+                    "textToSpeech": text_1
+                  }
+                },
+                {
+                  "basicCard": {
+                    "title": super_name,
+                    "subtitle": super_publisher,
+                    "formattedText": `Your SuperHero is the mighty **${super_name}**.  \n**INTELLIGENCE**       *${intelligence}*  \n**STRENGTH**          *${strength}*  \n**SPEED**               *${speed}*  \n**DURABILITY**          *${durability}*  \n**POWER**               *${power}*  \n**COMBAT**             *${combat}*`,
+                    "image": {
+                      "url": image_superhero,
+                      "accessibilityText": super_name
+                    },
+                    // "buttons": [
+                    //   {
+                    //     "title": "Button Title",
+                    //     "openUrlAction": {
+                    //       "url": "https://www.google.com"
+                    //     }
+                    //   }
+                    // ],
+                    "imageDisplayOptions": "CROPPED"
+                  }
+                }
+              ]
+            }
+          }
+        }
+    });
 
       } else {
-
         response.send({'fulfillmentText': `Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
       }
       return console.log(output);
