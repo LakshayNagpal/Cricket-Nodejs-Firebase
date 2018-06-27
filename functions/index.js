@@ -541,92 +541,273 @@ function callNumIngredientDietApi (recipe, num_of_ingredient, diet) {
   });
 }
 
+
+
+
+
+
 exports.superhero = functions.https.onRequest((request, response) => {
 
-  var name_superhero = request.body.queryResult.parameters.runs.number;
+  var super_name, super_publisher, intelligence, strength, speed, durability, power, combat, image_superhero ;
 
-  superHero(name_superhero).then((output) => {
-      // response.send({'fulfillmentText': `Success!!!` });
-      console.log("output in exports", output);
-      let res = output.response ;
-      console.log("output.response", res);
-      if(res === 'success'){
+  switch (request.body.queryResult.action) {
 
-        var result_arr = output.results ;
-        var text_1 = `I found ${result_arr.length} results for your superhero AND  \nThe best Superhero I found for you is` ;
-        console.log("text_1", text_1);
-        let length1 = result_arr.length ;
-        console.log("length1", length1);
-        i = Math.floor(Math.random() * length1);
-        console.log("Value of i", i);
-        let super_name = output.results[i].name ;
-        console.log("super_name", super_name);
-        let super_publisher = output.results[i].biography.publisher ;
-        let intelligence = output.results[i].powerstats.intelligence ;
-        let strength = output.results[i].powerstats.strength ;
-        let speed = output.results[i].powerstats.speed ;
-        let durability = output.results[i].powerstats.durability ;
-        let power = output.results[i].powerstats.power ;
-        let combat = output.results[i].powerstats.combat ;
-        let image_superhero = output.results[i].image.url ;
+    case 'superHeroCard': {
 
-        console.log("intelligence", intelligence);
-        console.log("combat", combat);
-        console.log("image_url", image_superhero);
+      var name_superhero = request.body.queryResult.parameters.superhero_entity;
 
-        response.send({
-        "payload": {
-          "google": {
-            "expectUserResponse": true,
-            "richResponse": {
-              "items": [
-                {
-                  "simpleResponse": {
-                    "textToSpeech": text_1
-                  }
-                },
-                {
-                  "basicCard": {
-                    "title": super_name,
-                    "subtitle": super_publisher,
-                    "formattedText": `Your SuperHero is the mighty **${super_name}**.  \n**INTELLIGENCE**       *${intelligence}*  \n**STRENGTH**          *${strength}*  \n**SPEED**               *${speed}*  \n**DURABILITY**          *${durability}*  \n**POWER**               *${power}*  \n**COMBAT**             *${combat}*`,
-                    "image": {
-                      "url": image_superhero,
-                      "accessibilityText": super_name
+      superHero_with_name(name_superhero).then((output) => {
+          // response.send({'fulfillmentText': `Success!!!` });
+          console.log("output in exports", output);
+          var res = output.response ;
+          console.log("output.response", res);
+          if(res === 'success'){
+
+            var result_arr = output.results ;
+            var text_1 = `Now, for which characteristic, You want to challenge me with my SuperHero` ;
+            console.log("text_1", text_1);
+            super_name = output.results[0].name ;
+            console.log("super_name", super_name);
+            super_publisher = output.results[0].biography.publisher ;
+            intelligence = output.results[0].powerstats.intelligence ;
+            strength = output.results[0].powerstats.strength ;
+            speed = output.results[0].powerstats.speed ;
+            durability = output.results[0].powerstats.durability ;
+            power = output.results[0].powerstats.power ;
+            combat = output.results[0].powerstats.combat ;
+            image_superhero = output.results[0].image.url ;
+
+            console.log("intelligence", intelligence);
+            console.log("combat", combat);
+            console.log("image_url", image_superhero);
+
+            response.send({
+            "payload": {
+              "google": {
+                "expectUserResponse": true,
+                "richResponse": {
+                  "items": [
+                    {
+                      "simpleResponse": {
+                        "textToSpeech": "Here's your Super Hero"
+                      }
                     },
-                    // "buttons": [
-                    //   {
-                    //     "title": "Button Title",
-                    //     "openUrlAction": {
-                    //       "url": "https://www.google.com"
-                    //     }
-                    //   }
-                    // ],
-                    "imageDisplayOptions": "CROPPED"
-                  }
+                    {
+                      "basicCard": {
+                        "title": super_name,
+                        "subtitle": super_publisher,
+                        "formattedText": `Your SuperHero is the mighty **${super_name}**.  \n**INTELLIGENCE** *${intelligence}*  \n**STRENGTH** *${strength}*  \n**SPEED** *${speed}*  \n**DURABILITY** *${durability}*  \n**POWER** *${power}*  \n**COMBAT** *${combat}*`,
+                        "image": {
+                          "url": image_superhero,
+                          "accessibilityText": super_name
+                        },
+                        // "buttons": [
+                        //   {
+                        //     "title": "Button Title",
+                        //     "openUrlAction": {
+                        //       "url": "https://www.google.com"
+                        //     }
+                        //   }
+                        // ],
+                        "imageDisplayOptions": "CROPPED"
+                      }
+                    },
+                    {
+                      "simpleResponse": {
+                        "textToSpeech": text_1
+                      }
+                    }
+                  ],
+                  "suggestions": [
+                    {
+                      "title": "Intelligence"
+                    },
+                    {
+                      "title": "Strength"
+                    },
+                    {
+                      "title": "Speed"
+                    },
+                    {
+                      "title": "Durability"
+                    },
+                    {
+                      "title": "Power"
+                    },
+                    {
+                      "title": "Combat"
+                    }
+                  ]
                 }
-              ]
+              }
             }
-          }
-        }
-    });
+        });
 
-      } else {
-        response.send({'fulfillmentText': `Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
+          } else {
+            console.log("else block executed when no superhero found in API")
+            response.send({'fulfillmentText': `Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
+          }
+          return console.log(output);
+      }).catch(() => {
+        console.log('catch block of superhero executed');
+        response.send({'fulfillmentText' : `supero catch block executed`});
+      })
+
+
+      break;
+    }
+
+    case 'characteristic': {
+      console.log("characteristic block ke andar ghus gaya");
+      var characteristic_chosen = request.body.queryResult.parameters.characteristic ;
+      console.log("characteristic_chosen", characteristic_chosen);
+      var characteristic_compare_user = '' ;
+      var characteristic_compare_ass = '' ;
+      var winner_text = '' ;
+      var ass_id = Math.floor(Math.random() * 731);
+
+      var user_chosen_character = '' ;
+      var outcontext = request.body.queryResult.outputContexts;
+
+      for(i=0;i<outcontext.length; i++){
+        ele = outcontext[i];
+        contextname = ele.name ;
+        contextfollowup = contextname.split("/")[6];
+        if(contextfollowup === "superhero-context"){
+            user_chosen_character = ele.parameters.superhero_entity;
+        }
       }
-      return console.log(output);
-  }).catch(() => {
-    console.log('catch block of superhero executed');
-    response.send({'fulfillmentText' : `supero catch block executed`});
-  })
+
+      console.log("user_chosen_character", user_chosen_character);
+
+      superHero_with_name(user_chosen_character).then((output) => {
+          // response.send({'fulfillmentText': `Success!!!` });
+          console.log("output in exports character block with name in character block", output);
+          var res = output.response ;
+          console.log("output.response character block with name in character block", res);
+          if(res === 'success'){
+            var powerstat = output.results[0].powerstats ;
+            console.log("powerstat in name character block", powerstat);
+            console.log("powerstat[characteristic_chosen]", powerstat[characteristic_chosen]);
+            characteristic_compare_user = powerstat[characteristic_chosen];
+
+
+            superHero_with_random_id(ass_id).then((output1) => {
+
+                console.log("output in exports character block with id in character block", output1);
+                var res_random_id = output1.response ;
+                console.log("output.response character block with id in character block", res_random_id);
+                if(res_random_id === 'success'){
+                  console.log("res_random_id executed", res_random_id);
+
+                  super_name = output1.name ;
+                  super_publisher = output1.biography.publisher ;
+                  intelligence = output1.powerstats.intelligence ;
+                  strength = output1.powerstats.strength ;
+                  speed = output1.powerstats.speed ;
+                  durability = output1.powerstats.durability ;
+                  power = output1.powerstats.power ;
+                  combat = output1.powerstats.combat ;
+                  image_superhero = output1.image.url ;
+
+                  characteristic_compare_ass = output1.powerstats[characteristic_chosen] ;
+
+                  if(parseInt(characteristic_compare_ass) > parseInt(characteristic_compare_user)){
+                    winner_text = `Yeah!!! ${super_name} won against ${user_chosen_character} in terms of ${characteristic_chosen}.`
+                  } else if(parseInt(characteristic_compare_ass) < parseInt(characteristic_compare_user)){
+                    winner_text = `${user_chosen_character} has defeated ${super_name}. I must say Smart Move by you.`
+                  } else {
+                    winner_text = `Both of our Super Heros were hypnotised with Wonder Woman's charm and lost control. Hence It's a Draw.`
+                  }
+
+                  response.send({
+                  "payload": {
+                    "google": {
+                      "expectUserResponse": false,
+                      "richResponse": {
+                        "items": [
+                          {
+                            "simpleResponse": {
+                              "textToSpeech": `My Super Hero against your Fearsome ${user_chosen_character} is`
+                            }
+                          },
+                          {
+                            "basicCard": {
+                              "title": super_name,
+                              "subtitle": super_publisher,
+                              "formattedText": `My SuperHero is the vigorous **${super_name}**.  \n**INTELLIGENCE** *${intelligence}*  \n**STRENGTH** *${strength}*  \n**SPEED** *${speed}*  \n**DURABILITY** *${durability}*  \n**POWER** *${power}*  \n**COMBAT** *${combat}*`,
+                              "image": {
+                                "url": image_superhero,
+                                "accessibilityText": super_name
+                              },
+                              // "buttons": [
+                              //   {
+                              //     "title": "Button Title",
+                              //     "openUrlAction": {
+                              //       "url": "https://www.google.com"
+                              //     }
+                              //   }
+                              // ],
+                              "imageDisplayOptions": "CROPPED"
+                            }
+                          },
+                          {
+                            "simpleResponse": {
+                              "textToSpeech": winner_text
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+              });
+
+                } else {
+                  console.log("character block executed of random id else block executed when no superhero found in API")
+                  response.send({'fulfillmentText': `res returned error in characteristic block`});
+                }
+                return console.log(output);
+            }).catch(() => {
+              console.log('catch block of characteristic random id wala executed');
+            })
+
+
+
+
+
+          } else {
+            console.log("character block executed else block executed when no superhero found in API")
+            response.send({'fulfillmentText': `Character block executed Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
+          }
+          return console.log(output);
+      }).catch(() => {
+        console.log('catch block of characteristic name wala executed');
+      })
+
+      break;
+    }
+
+
+    default: {
+
+      response.send({
+        'fulfillmentText': `default block executed`
+      })
+
+      break;
+    }
+
+
+  }     // closing brace of switch block
 
 });
 
 
 
-function superHero (name) {
+function superHero_with_name (name) {
   return new Promise((resolve, reject) => {
-    let path_superhero = '/api.php/' + superhero_access_token + '/search/batman'   ;
+    var encoded_superhero_name = name.split(" ").join("%20");
+    var path_superhero = '/api.php/' + superhero_access_token + '/search/' + encoded_superhero_name ;
     console.log('API Request: ' + host_superhero + path_superhero);
 
     http.get({host: host_superhero, path: path_superhero}, (res) => {
@@ -636,36 +817,6 @@ function superHero (name) {
         console.log("BODY:", body);
         let output = JSON.parse(body);
         resolve(output);
-        //let response = JSON.parse(body);
-        // if (response['count'] === 0) {
-        //   let asked_recipe = response['q'];
-        //   let num_of_ingr = response['params']['ingr'][0];
-        //   let output = `Sorry, I couldn't find recipe for ${asked_recipe} with ${num_of_ingr} ingredients!  \n Please verify if the name of the recipe was entered correctly or else try again with some different recipe.`;
-        //
-        //   resolve(output);
-        //
-        // } else {
-        //   let length = response['hits'].length ;
-        //   let i = Math.floor(Math.random() * length);
-        //   console.log('The index number of the response is', i);
-        //   let recipe_name = response['hits'][i]['recipe']['label'];
-        //   console.log('recipe_name_calorie_intent', recipe_name);
-        //   let servings = response['hits'][i]['recipe']['yield'];
-        //   let ingredient_list = response['hits'][i]['recipe']['ingredientLines'];
-        //   var ingredients = '';
-        //   ingredient_list.forEach((doc) => {ingredients = ingredients + doc + '  \n'});
-        //   console.log('ingredient_list_calorie_intent', ingredient_list);
-        //   let calories = response['hits'][i]['recipe']['calories'];
-        //   calories = Math.ceil(calories);
-        //   let nutrition = response['hits'][i]['recipe']['totalDaily']['ENERC_KCAL']['quantity'];
-        //   nutrition = Math.ceil(nutrition);
-        //   console.log('calories_calorie_intent', calories);
-        //
-        //   let output = `The ingredient list of ${recipe_name} Recipe are ${ingredients} and this recipe has ${calories} calories with daily nutrition value of ${nutrition}% which will serve ${servings} people !  \nIt feels good to teach people how to make unique and delicious food :)`;
-        //
-        //   resolve(output);
-        //
-        // }
 
       });
       res.on('error', (error) => {
@@ -675,6 +826,27 @@ function superHero (name) {
   });
 }
 
+
+function superHero_with_random_id (id) {
+  return new Promise((resolve, reject) => {
+    var path_superhero = '/api.php/' + superhero_access_token + '/' + id ;
+    console.log('API Request: ' + host_superhero + path_superhero);
+
+    http.get({host: host_superhero, path: path_superhero}, (res) => {
+      let body = '';
+      res.on('data', (d) => { body += d;});
+      res.on('end', () => {
+        console.log("BODY:", body);
+        let output = JSON.parse(body);
+        resolve(output);
+
+      });
+      res.on('error', (error) => {
+        console.log(`Error while calling the API ${error}` );
+      });
+    });
+  });
+}
 
 
 
