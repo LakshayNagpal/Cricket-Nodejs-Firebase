@@ -4,7 +4,7 @@ var admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 var firestore = admin.firestore();
 var http = require('http');
-
+var uuid = require('uuid/v4');
 const host = 'api.edamam.com';
 const recipe_api_id = 'e8297cf8';
 const recipe_api_key = '025ece12056c837955ebaa635784ef4a';
@@ -30,7 +30,8 @@ exports.recipe = functions.https.onRequest((request, response) => {
         for(var i=0;i<outcontext.length; i++){
           var ele = outcontext[i];
           var contextname = ele.name ;
-          var contextfollowup = contextname.split("/")[6];
+          var contextname_arr = contextname.split("/");
+          var contextfollowup = contextname_arr[contextname_arr.length - 1];
           if(contextfollowup === "recipewithcalories-followup"){
               ingredient = ele.parameters.ingredientlist;
               cal = ele.parameters.number;
@@ -71,7 +72,8 @@ exports.recipe = functions.https.onRequest((request, response) => {
         for(i=0;i<outcontext.length; i++){
           ele = outcontext[i];
           contextname = ele.name ;
-          contextfollowup = contextname.split("/")[6];
+          contextname_arr = contextname.split("/");
+          contextfollowup = contextname_arr[contextname_arr.length - 1];
           if(contextfollowup === "recipewithcalories-followup"){
               ingredient = ele.parameters.ingredientlist;
               cal = ele.parameters.number;
@@ -102,7 +104,8 @@ exports.recipe = functions.https.onRequest((request, response) => {
         for(i=0;i<outcontext.length; i++){
           ele = outcontext[i];
           contextname = ele.name ;
-          contextfollowup = contextname.split("/")[6];
+          contextname_arr = contextname.split("/");
+          contextfollowup = contextname_arr[contextname_arr.length - 1];
           if(contextfollowup === "recipetellerwithoneingredient-followup"){
               ingredient = ele.parameters.ingredientlist;
           }
@@ -139,7 +142,8 @@ exports.recipe = functions.https.onRequest((request, response) => {
         for(i=0;i<outcontext.length; i++){
           ele = outcontext[i];
           contextname = ele.name ;
-          contextfollowup = contextname.split("/")[6];
+          contextname_arr = contextname.split("/");
+          contextfollowup = contextname_arr[contextname_arr.length - 1];
           if(contextfollowup === "recipetellerwithoneingredient-followup"){
               ingredient = ele.parameters.ingredientlist;
               diet = ele.parameters.diet ;
@@ -174,7 +178,8 @@ exports.recipe = functions.https.onRequest((request, response) => {
         for(i=0;i<outcontext.length; i++){
           ele = outcontext[i];
           contextname = ele.name ;
-          contextfollowup = contextname.split("/")[6];
+          contextname_arr = contextname.split("/");
+          contextfollowup = contextname_arr[contextname_arr.length - 1];
           if(contextfollowup === "recipewithnumberofingredients-followup"){
               ingredient = ele.parameters.ingredientlist;
               ingr = ele.parameters.number;
@@ -211,7 +216,8 @@ exports.recipe = functions.https.onRequest((request, response) => {
         for(i=0;i<outcontext.length; i++){
           ele = outcontext[i];
           contextname = ele.name ;
-          contextfollowup = contextname.split("/")[6];
+          contextname_arr = contextname.split("/");
+          contextfollowup = contextname_arr[contextname_arr.length - 1];
           if(contextfollowup === "recipewithnumberofingredients-followup"){
               ingredient = ele.parameters.ingredientlist;
               ingr = ele.parameters.number;
@@ -550,6 +556,26 @@ exports.superhero = functions.https.onRequest((request, response) => {
 
   var super_name, super_publisher, intelligence, strength, speed, durability, power, combat, image_superhero ;
 
+  let userStorage = request.body.originalDetectIntentRequest.payload.user.userStorage || JSON.stringify({});
+  let userId;
+  //console.log("userStorage", userStorage);
+  userStorage = JSON.parse(userStorage);
+  //console.log("userStorage_after_parsing", userStorage);
+
+  if (userStorage.hasOwnProperty('userId')) {
+    userId = userStorage.userId;
+    //console.log("userID In if", userId);
+  } else {
+    // Uses the "uuid" package. You can get this with "npm install --save uuid"
+    // var uuid = require('uuid/v4');
+
+    userId = uuid();
+    userStorage.userId = userId
+  }
+
+  console.log("userID", userId);
+
+
   switch (request.body.queryResult.action) {
 
     case 'superHeroCard': {
@@ -558,28 +584,39 @@ exports.superhero = functions.https.onRequest((request, response) => {
 
       superHero_with_name(name_superhero).then((output) => {
           // response.send({'fulfillmentText': `Success!!!` });
-          console.log("output in exports", output);
           var res = output.response ;
-          console.log("output.response", res);
           if(res === 'success'){
 
             var result_arr = output.results ;
             var text_1 = `Now, for which characteristic, You want to challenge me with my SuperHero` ;
-            console.log("text_1", text_1);
             super_name = output.results[0].name ;
-            console.log("super_name", super_name);
+
             super_publisher = output.results[0].biography.publisher ;
             intelligence = output.results[0].powerstats.intelligence ;
+            if(intelligence === "null"){
+              intelligence = 10;
+            }
             strength = output.results[0].powerstats.strength ;
+            if(strength === "null"){
+              strength = 23;
+            }
             speed = output.results[0].powerstats.speed ;
+            if(speed === "null"){
+              speed = 13;
+            }
             durability = output.results[0].powerstats.durability ;
+            if(durability === "null"){
+              durability = 8;
+            }
             power = output.results[0].powerstats.power ;
+            if(power === "null"){
+              power = 19;
+            }
             combat = output.results[0].powerstats.combat ;
+            if(combat === "null"){
+              combat = 11;
+            }
             image_superhero = output.results[0].image.url ;
-
-            console.log("intelligence", intelligence);
-            console.log("combat", combat);
-            console.log("image_url", image_superhero);
 
             response.send({
             "payload": {
@@ -650,7 +687,7 @@ exports.superhero = functions.https.onRequest((request, response) => {
           return console.log(output);
       }).catch(() => {
         console.log('catch block of superhero executed');
-        response.send({'fulfillmentText' : `supero catch block executed`});
+        response.send({'fulfillmentText' : `Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
       })
 
 
@@ -658,7 +695,7 @@ exports.superhero = functions.https.onRequest((request, response) => {
     }
 
     case 'characteristic': {
-      console.log("characteristic block ke andar ghus gaya");
+
       var characteristic_chosen = request.body.queryResult.parameters.characteristic ;
       console.log("characteristic_chosen", characteristic_chosen);
       var characteristic_compare_user = '' ;
@@ -670,60 +707,264 @@ exports.superhero = functions.https.onRequest((request, response) => {
       var outcontext = request.body.queryResult.outputContexts;
 
       for(i=0;i<outcontext.length; i++){
-        ele = outcontext[i];
-        contextname = ele.name ;
-        contextfollowup = contextname.split("/")[6];
-        if(contextfollowup === "superhero-context"){
-            user_chosen_character = ele.parameters.superhero_entity;
-        }
+      ele = outcontext[i];
+      contextname = ele.name ;
+
+      contextname_arr = contextname.split("/");
+      contextfollowup = contextname_arr[contextname_arr.length - 1];
+      if(contextfollowup === "superhero-context"){
+          user_chosen_character = ele.parameters.superhero_entity;
+          break;
       }
+    }
+
 
       console.log("user_chosen_character", user_chosen_character);
 
       superHero_with_name(user_chosen_character).then((output) => {
           // response.send({'fulfillmentText': `Success!!!` });
-          console.log("output in exports character block with name in character block", output);
           var res = output.response ;
-          console.log("output.response character block with name in character block", res);
           if(res === 'success'){
             var powerstat = output.results[0].powerstats ;
-            console.log("powerstat in name character block", powerstat);
             console.log("powerstat[characteristic_chosen]", powerstat[characteristic_chosen]);
             characteristic_compare_user = powerstat[characteristic_chosen];
 
 
             superHero_with_random_id(ass_id).then((output1) => {
 
-                console.log("output in exports character block with id in character block", output1);
                 var res_random_id = output1.response ;
-                console.log("output.response character block with id in character block", res_random_id);
+
                 if(res_random_id === 'success'){
                   console.log("res_random_id executed", res_random_id);
 
                   super_name = output1.name ;
                   super_publisher = output1.biography.publisher ;
                   intelligence = output1.powerstats.intelligence ;
-                  strength = output1.powerstats.strength ;
-                  speed = output1.powerstats.speed ;
-                  durability = output1.powerstats.durability ;
-                  power = output1.powerstats.power ;
-                  combat = output1.powerstats.combat ;
+
+                  if(intelligence === "null"){
+                    intelligence = Math.floor(Math.random() * 41) + 40 ;
+
+                    if(characteristic_chosen === "intelligence"){
+                      characteristic_compare_ass = intelligence ;
+                    }
+
+                  }
+
+                  strength = output1.powerstats.strength;
+                  if(strength === "null"){
+                    strength = Math.floor(Math.random() * 61) + 20 ;
+
+                    if(characteristic_chosen === "strength"){
+                      characteristic_compare_ass = strength ;
+                    }
+                  }
+
+                  speed = output1.powerstats.speed;
+                  if(speed === "null"){
+                    speed = Math.floor(Math.random() * 41) + 30 ;
+
+                    if(characteristic_chosen === "speed"){
+                      characteristic_compare_ass = speed ;
+                    }
+                  }
+
+                  durability = output1.powerstats.durability;
+                  if(durability === "null"){
+                    durability = Math.floor(Math.random() * 81) + 10 ;
+
+                    if(characteristic_chosen === "durability"){
+                      characteristic_compare_ass = durability ;
+                    }
+                  }
+
+                  power = output1.powerstats.power;
+                  if(power === "null"){
+                    power = Math.floor(Math.random() * 51) + 40 ;
+
+                    if(characteristic_chosen === "power"){
+                      characteristic_compare_ass = power ;
+                    }
+                  }
+
+                  combat = output1.powerstats.combat;
+                  if(combat === "null"){
+                    combat = Math.floor(Math.random() * 51) + 30 ;
+
+                    if(characteristic_chosen === "combat"){
+                      characteristic_compare_ass = combat ;
+                    }
+                  }
+
                   image_superhero = output1.image.url ;
 
-                  characteristic_compare_ass = output1.powerstats[characteristic_chosen] ;
+                  if(output1.powerstats[characteristic_chosen] !== "null"){
+                    characteristic_compare_ass = output1.powerstats[characteristic_chosen] ;
+                  }
+
 
                   if(parseInt(characteristic_compare_ass) > parseInt(characteristic_compare_user)){
-                    winner_text = `Yeah!!! ${super_name} won against ${user_chosen_character} in terms of ${characteristic_chosen}.`
+                    winner_text = `Yeah!!! ${super_name} won against ${user_chosen_character} in terms of ${characteristic_chosen}. You lost 1 point for it.  \nWould you like to compete again?` ;
+
+
+                    var superhero_card = { };
+                    superhero_card['total_player'] = -1;
+                    superhero_card['times_played'] = 1;
+                    console.log(superhero_card);
+                    //I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.
+                    fields = firestore.collection('superhero').doc(userId);
+                    fields.get()
+                    .then( doc => {
+                        if(!doc.exists){
+                          firestore.collection('superhero').doc(userId).set(superhero_card)
+                            .then(() => {
+                              return console.log("database mein points add ho gaye for new user", superhero_card);
+                            })
+                            .catch((e => {
+
+                              console.log('error: ', e);
+
+                              response.send({
+                             'fulfillmentText' : `something went wrong when writing to database`
+                                });
+                            }))
+
+
+                        } else {
+                          superhero_card = doc.data();
+                          superhero_card['total_player'] = superhero_card['total_player'] - 1;
+                          superhero_card['times_played'] = superhero_card['times_played'] + 1;
+                          firestore.collection('superhero').doc(userId).set(superhero_card)
+                            .then(() => {
+                              return console.log("database mein points add ho gaye for returning user", superhero_card);
+                            })
+                            .catch((e => {
+
+                              console.log('error: ', e);
+
+                              response.send({
+                             'fulfillmentText' : `something went wrong when writing to database`
+                                });
+                            }))
+
+                        }
+                        return console.log("superhero_card when runs are not equal", superhero_card);
+                      })
+                    .catch((e => {
+                      console.log('error from database', e);
+                    }));
+
+
                   } else if(parseInt(characteristic_compare_ass) < parseInt(characteristic_compare_user)){
-                    winner_text = `${user_chosen_character} has defeated ${super_name}. I must say Smart Move by you.`
+                    winner_text = `${user_chosen_character} has defeated ${super_name} in terms of ${characteristic_chosen}. I must say Smart Move which earned you 3 points.  \nWould you like to compete again?`;
+
+
+                    superhero_card = { };
+                    superhero_card['total_player'] = 3;
+                    superhero_card['times_played'] = 1;
+                    console.log(superhero_card);
+                    //I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.
+                    fields = firestore.collection('superhero').doc(userId);
+                    fields.get()
+                    .then( doc => {
+                        if(!doc.exists){
+                          firestore.collection('superhero').doc(userId).set(superhero_card)
+                            .then(() => {
+                              return console.log("database mein points add ho gaye for new user", superhero_card);
+                            })
+                            .catch((e => {
+
+                              console.log('error: ', e);
+
+                              response.send({
+                             'fulfillmentText' : `something went wrong when writing to database`
+                                });
+                            }))
+
+
+                        } else {
+                          superhero_card = doc.data();
+                          superhero_card['total_player'] = superhero_card['total_player'] + 3;
+                          superhero_card['times_played'] = superhero_card['times_played'] + 1;
+                          firestore.collection('superhero').doc(userId).set(superhero_card)
+                            .then(() => {
+                              return console.log("database mein points add ho gaye for returning user", superhero_card);
+                            })
+                            .catch((e => {
+
+                              console.log('error: ', e);
+
+                              response.send({
+                             'fulfillmentText' : `something went wrong when writing to database`
+                                });
+                            }))
+
+                        }
+                        return console.log("superhero_card when runs are not equal", superhero_card);
+                      })
+                    .catch((e => {
+                      console.log('error from database', e);
+                    }));
+
+
                   } else {
-                    winner_text = `Both of our Super Heros were hypnotised with Wonder Woman's charm and lost control. Hence It's a Draw.`
+                    winner_text = `Both of our Super Heros were hypnotised with Wonder Woman's charm and lost control. Hence It's a Draw and each of us is awarded with 1 point each.  \nWould you like to compete again?`;
+
+
+                    superhero_card = { };
+                    superhero_card['total_player'] = 1;
+                    superhero_card['times_played'] = 1;
+                    console.log(superhero_card);
+                    //I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.
+                    fields = firestore.collection('superhero').doc(userId);
+                    fields.get()
+                    .then( doc => {
+                        if(!doc.exists){
+                          firestore.collection('superhero').doc(userId).set(superhero_card)
+                            .then(() => {
+                              return console.log("database mein points add ho gaye for new user", superhero_card);
+                            })
+                            .catch((e => {
+
+                              console.log('error: ', e);
+
+                              response.send({
+                             'fulfillmentText' : `something went wrong when writing to database`
+                                });
+                            }))
+
+
+                        } else {
+                          superhero_card = doc.data();
+                          superhero_card['total_player'] = superhero_card['total_player'] + 1;
+                          superhero_card['times_played'] = superhero_card['times_played'] + 1;
+                          firestore.collection('superhero').doc(userId).set(superhero_card)
+                            .then(() => {
+                              return console.log("database mein points add ho gaye for returning user", superhero_card);
+                            })
+                            .catch((e => {
+
+                              console.log('error: ', e);
+
+                              response.send({
+                             'fulfillmentText' : `something went wrong when writing to database`
+                                });
+                            }))
+
+                        }
+                        return console.log("superhero_card when runs are not equal", superhero_card);
+                      })
+                    .catch((e => {
+                      console.log('error from database', e);
+                    }));
+
+
                   }
 
                   response.send({
                   "payload": {
                     "google": {
-                      "expectUserResponse": false,
+                      "userStorage": JSON.stringify(userStorage),
+                      "expectUserResponse": true,
                       "richResponse": {
                         "items": [
                           {
@@ -740,14 +981,6 @@ exports.superhero = functions.https.onRequest((request, response) => {
                                 "url": image_superhero,
                                 "accessibilityText": super_name
                               },
-                              // "buttons": [
-                              //   {
-                              //     "title": "Button Title",
-                              //     "openUrlAction": {
-                              //       "url": "https://www.google.com"
-                              //     }
-                              //   }
-                              // ],
                               "imageDisplayOptions": "CROPPED"
                             }
                           },
@@ -755,6 +988,17 @@ exports.superhero = functions.https.onRequest((request, response) => {
                             "simpleResponse": {
                               "textToSpeech": winner_text
                             }
+                          }
+                        ],
+                        "suggestions": [
+                          {
+                            "title": "yes"
+                          },
+                          {
+                            "title": "no"
+                          },
+                          {
+                            "title": "My Score"
                           }
                         ]
                       }
@@ -764,7 +1008,7 @@ exports.superhero = functions.https.onRequest((request, response) => {
 
                 } else {
                   console.log("character block executed of random id else block executed when no superhero found in API")
-                  response.send({'fulfillmentText': `res returned error in characteristic block`});
+                  response.send({'fulfillmentText' : `Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
                 }
                 return console.log(output);
             }).catch(() => {
@@ -772,27 +1016,94 @@ exports.superhero = functions.https.onRequest((request, response) => {
             })
 
 
-
-
-
           } else {
             console.log("character block executed else block executed when no superhero found in API")
-            response.send({'fulfillmentText': `Character block executed Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
+            response.send({'fulfillmentText': `Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
           }
           return console.log(output);
       }).catch(() => {
         console.log('catch block of characteristic name wala executed');
+        response.send({'fulfillmentText': `Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
       })
 
       break;
     }
 
+    case 'scoresInMatches': {
+
+      fields = firestore.collection('superhero').doc(userId);
+      fields.get()
+      .then( doc => {
+          if(!doc.exists){
+
+              response.send({
+              "payload": {
+                "google": {
+                  "expectUserResponse": true,
+                  "richResponse": {
+                    "items": [
+                      {
+                        "simpleResponse": {
+                          "textToSpeech": `You're playing for the first time and hence I don't have any past record of you.  \nWould you like to continue the game?`
+                        }
+                      }
+                    ],
+                    "suggestions": [
+                      {
+                        "title": "yes"
+                      },
+                      {
+                        "title": "no"
+                      }
+                    ]
+                  }
+                }
+              }
+          });
+
+
+          } else {
+            scores_matches = doc.data();
+
+            response.send({
+            "payload": {
+              "google": {
+                "expectUserResponse": true,
+                "richResponse": {
+                  "items": [
+                    {
+                      "simpleResponse": {
+                        "textToSpeech": `You have played ${scores_matches['times_played']} matches in which you have scored ${scores_matches['total_player']} points. Awesome you are, in this game.  \nWould you like to continue the game?`
+                      }
+                    }
+                  ],
+                  "suggestions": [
+                    {
+                      "title": "yes"
+                    },
+                    {
+                      "title": "no"
+                    }
+                  ]
+                }
+              }
+            }
+          });
+
+          }
+          return console.log("scoresInMatches wala block");
+        })
+      .catch((e => {
+        console.log('error from database', e);
+      }));
+
+
+      break;
+    }
 
     default: {
 
-      response.send({
-        'fulfillmentText': `default block executed`
-      })
+      response.send({'fulfillmentText': `Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
 
       break;
     }
@@ -869,7 +1180,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
   } else {
     // Uses the "uuid" package. You can get this with "npm install --save uuid"
     // var uuid = require('uuid/v4');
-    var uuid = require('uuid/v4');
+
     userId = uuid();
     userStorage.userId = userId
   }
@@ -1060,7 +1371,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
         card['times_played'] = 0;
         card['max_runs'] = 0;
         console.log(card);
-        //I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.
+
         fields = firestore.collection('game').doc(userId);
         fields.get()
         .then( doc => {
@@ -1076,7 +1387,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
                           "items": [
                             {
                               "simpleResponse": {
-                                "textToSpeech": `I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.`
+                                "textToSpeech": `I hit ${ass_run} runs. You hit ${runs} runs. Your total score is ${card['total_player']}*  \nGreat! Hit the next incoming ball.`
                               }
                             }
                           ],
@@ -1144,7 +1455,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
                           "items": [
                             {
                               "simpleResponse": {
-                                "textToSpeech": `I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.`
+                                "textToSpeech": `I hit ${ass_run} runs. You hit ${runs} runs. Your total score is ${card['total_player']}*  \nGreat! Hit the next incoming ball.`
                               }
                             }
                           ],
