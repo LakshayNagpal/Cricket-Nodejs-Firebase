@@ -594,27 +594,27 @@ exports.superhero = functions.https.onRequest((request, response) => {
             super_publisher = output.results[0].biography.publisher ;
             intelligence = output.results[0].powerstats.intelligence ;
             if(intelligence === "null"){
-              intelligence = 10;
+              intelligence = Math.floor(Math.random() * 41) + 40 ;
             }
             strength = output.results[0].powerstats.strength ;
             if(strength === "null"){
-              strength = 23;
+              strength = Math.floor(Math.random() * 61) + 20 ;
             }
             speed = output.results[0].powerstats.speed ;
             if(speed === "null"){
-              speed = 13;
+              speed = Math.floor(Math.random() * 41) + 30 ;
             }
             durability = output.results[0].powerstats.durability ;
             if(durability === "null"){
-              durability = 8;
+              durability = Math.floor(Math.random() * 81) + 10 ;
             }
             power = output.results[0].powerstats.power ;
             if(power === "null"){
-              power = 19;
+              power = Math.floor(Math.random() * 51) + 40 ;
             }
             combat = output.results[0].powerstats.combat ;
             if(combat === "null"){
-              combat = 11;
+              combat = Math.floor(Math.random() * 51) + 30 ;
             }
             image_superhero = output.results[0].image.url ;
 
@@ -1266,7 +1266,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
                       },
                       {
                         "simpleResponse": {
-                          "textToSpeech": `Unluckily, Your total score is 0 run.  \nWould you like to play again with me?`
+                          "textToSpeech": `Unluckily, Your total score is 0 run.  \nWould you like to compete again?`
                         }
                       }
                     ],
@@ -1299,6 +1299,54 @@ exports.oddeven = functions.https.onRequest((request, response) => {
             if(runs_scored > max_runs){
               card['max_runs'] = runs_scored;
             }
+
+
+            var leader_board = firestore.collection('game').doc('leaderboard');
+            leader_board.get()
+            .then(doc => {
+              if(!doc.exists){
+                console.log('leaderboard document doesnot exist');
+              } else {
+                var leader_runs = doc.data();
+                var top_1 = leader_runs['top_1'];
+                var top_2 = leader_runs['top_2'];
+                var top_3 = leader_runs['top_3'];
+                if(runs_scored > top_1){
+                  firestore.collection('game').doc('leaderboard').set({'top_1': runs_scored,'top_2': top_2,'top_3': top_3})
+                  .then(() => {
+                    return console.log("leaderboard top_1 updated");
+                  })
+                  .catch((e => {
+                    console.log('error of leaderboard: ', e);
+                  }))
+                } else if(runs_scored > top_2 && runs_scored < top_1){
+                  firestore.collection('game').doc('leaderboard').set({'top_1': top_1,'top_2': runs_scored,'top_3': top_3})
+                  .then(() => {
+                    return console.log("leaderboard top_2 updated");
+                  })
+                  .catch((e => {
+                    console.log('error of leaderboard: ', e);
+                  }))
+                } else if(runs_scored > top_3 && runs_scored < top_2){
+                  firestore.collection('game').doc('leaderboard').set({'top_1': top_1,'top_2': top_2,'top_3': runs_scored})
+                  .then(() => {
+                    return console.log("leaderboard top_3 updated");
+                  })
+                  .catch((e => {
+                    console.log('error of leaderboard: ', e);
+                  }))
+                }
+              }
+              return console.log("leaderboard else executed");
+            })
+            .catch((e => {
+              console.log('error: ', e);
+            }))
+
+
+
+
+
             //console.log("card after adding times played", card);
 
             firestore.collection('game').doc(userId).set(card)
@@ -1317,7 +1365,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
                           },
                           {
                             "simpleResponse": {
-                              "textToSpeech": `Would you like to play again with me?`
+                              "textToSpeech": `Would you like play again?`
                             }
                           }
                         ],
@@ -1587,7 +1635,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
                     },
                     {
                       "simpleResponse": {
-                        "textToSpeech": `Would you like to play with me again?`
+                        "textToSpeech": `Would you like to continue the play?`
                       }
                     }
                   ],
@@ -1626,6 +1674,79 @@ exports.oddeven = functions.https.onRequest((request, response) => {
       break;
     }
 
+    case 'leaderboard': {
+
+      var leader_board = firestore.collection('game').doc('leaderboard');
+      leader_board.get()
+      .then(doc => {
+        if(!doc.exists){
+          console.log('leaderboard document doesnot exist');
+        } else {
+          var leader_runs = doc.data();
+
+          response.send({
+            'payload': {
+              'google': {
+                'userStorage': JSON.stringify(userStorage),
+                "expectUserResponse": true,
+                "richResponse": {
+                  "items": [
+                    {
+                      "simpleResponse": {
+                        "textToSpeech": `Here's the Leaderboard`
+                      }
+                    },
+                    {
+                      "basicCard": {
+                        "title": "Voice Cricket Leaderboard",
+                        "formattedText": `*1. Rajat Thakur* **${leader_runs['top_1']}**  \n*2. Vasu Bharija* **${leader_runs['top_2']}**  \n*3. Sudheer Reddy Gaddam* **${leader_runs['top_3']}**`,
+                      }
+                    },
+                    {
+                      "simpleResponse": {
+                        "textToSpeech": `Would you like to continue the play?`
+                      }
+                    }
+                  ],
+                  "suggestions": [
+                    {
+                      "title": "yes"
+                    },
+                    {
+                      "title": "no"
+                    },
+                    {
+                      "title": "My Score"
+                    }
+                  ]
+                }
+              }
+            }
+
+          });
+        }
+        return console.log("leaderboard else executed");
+      })
+      .catch((e => {
+
+        console.log('error: ', e);
+
+        response.send({
+       'fulfillmentText' : `something went wrong when reading from the leaderboard database`,
+       'payload': {
+         'google': {
+           'userStorage': JSON.stringify(userStorage)
+         }
+       }
+
+          });
+      }))
+
+
+
+      break;
+    }
+
     default: {
 
       response.send({
@@ -1645,207 +1766,207 @@ exports.oddeven = functions.https.onRequest((request, response) => {
 });
 
 
-exports.webhook = functions.https.onRequest((request, response) => {
-
-    // console.log("The query text is" , request.body.queryResult.queryText);
-    console.log("request.body.queryResult.parameters", request.body.queryResult.parameters);
-    console.log("request.body.originalDetectIntentRequest.payload", request.body.originalDetectIntentRequest.payload);
-
-    let userStorage = request.body.originalDetectIntentRequest.payload.user.userStorage || JSON.stringify({});
-    let userId;
-    console.log("userStorage", userStorage);
-    userStorage = JSON.parse(userStorage);
-    console.log("userStorage_after_parsing", userStorage);
-
-    // if a value for userID exists un user storage, it's a returning user so we can
-    // just read the value and use it. If a value for userId does not exist in user storage,
-    // it's a new user, so we need to generate a new ID and save it in user storage.
-    if (userStorage.hasOwnProperty('userId')) {
-      userId = userStorage.userId;
-      console.log("userID In if", userId);
-    } else {
-      // Uses the "uuid" package. You can get this with "npm install --save uuid"
-      // var uuid = require('uuid/v4');
-      var uuid = require('uuid/v4');
-      userId = uuid();
-      userStorage.userId = userId
-    }
-
-    console.log("userID", userId);
-
-    // ... Do stuff with the userID
-
-    // Make sure you include the userStorage as part of the response
-    // var responseBody = {
-    //   payload: {
-    //     google: {
-    //       userStorage: userStorage,
-    //       // ...
-    //     }
-    //   }
-    // };
-
-    switch (request.body.queryResult.action) {
-      case 'FeedbackAction': {
-
-            let params = request.body.queryResult.parameters;
-            // let text = request.body.queryResult.queryText;
-            //database
-            // var full_session_id = request.body.session;
-            // var session = full_session_id.split("/")[4];
-
-            firestore.collection('users').doc(userId).set(params)
-              .then(() => {
-
-              response.send({
-                'fulfillmentText' : `Thank You for visiting our ${params.resortLocation} hotel branch and giving us ${params.rating} and your comment as ${params.comments}.` ,
-                'payload': {
-                  'google': {
-                    'userStorage': JSON.stringify(userStorage) ,
-                    "expectUserResponse": true,
-                    "richResponse": {
-                      "items": [
-                        {
-                          "simpleResponse": {
-                            "textToSpeech": "Howdy! I can tell you fun facts about almost any number."
-                          }
-                        },
-                        {
-                          "simpleResponse": {
-                            "textToSpeech": "What number do you have in mind?"
-                          }
-                        }
-                      ],
-                      "suggestions": [
-                        {
-                          "title": "25"
-                        },
-                        {
-                          "title": "45"
-                        },
-                        {
-                          "title": "Never mind"
-                        }
-                      ],
-                      "linkOutSuggestion": {
-                        "destinationName": "Website",
-                        "url": "https://assistant.google.com"
-                      }
-                    }
-
-
-                  }
-                }
-
-
-                });
-                return console.log("resort location", params.resortLocation);
-            })
-            .catch((e => {
-
-              console.log('error: ', e);
-
-              response.send({
-             'fulfillmentText' : `something went wrong when writing to database`,
-             'payload': {
-               'google': {
-                 'userStorage': JSON.stringify(userStorage)
-               }
-             }
-                });
-            }))
-
-
-
-        break;
-      }
-        case 'countFeedbacks':{
-
-          var docRef = firestore.collection('users').doc(userId);
-
-          docRef.get().then(doc => {
-              if (doc.exists) {
-                  // console.log("Document data:", doc.data());
-                  var dat = doc.data();
-                  response.send({
-                    'fulfillmentText' : `You have given feedback for ${dat.resortLocation} and rating as ${dat.rating}`,
-                    'payload': {
-                      'google': {
-                        'userStorage': JSON.stringify(userStorage)
-                      }
-                    }
-                  });
-
-              } else {
-                  // doc.data() will be undefined in this case
-                  console.log("No such document!");
-
-                  response.send({
-                    'fulfillmentText' : `No feedback found in our database`,
-                    'payload': {
-                      'google': {
-                        'userStorage': JSON.stringify(userStorage)
-                      }
-                    }
-                  });
-
-              }
-              return console.log("userStorage_then_wala", userStorage);
-          }).catch((e => {
-              console.log("Error getting document:", error);
-              response.send({
-                'fulfillmentText' : `something went wrong while reading from the database`,
-                'payload': {
-                  'google': {
-                    'userStorage': JSON.stringify(userStorage)
-                  }
-                }
-              })
-          }));
-
-          break;
-        }
-
-        case 'ShowFeedbacks':{
-
-          firestore.collection('users').get()
-            .then((snapshot) => {
-
-              var feedbacks = [];
-              snapshot.forEach((doc) => { feedbacks.push(doc.data())});
-
-              var show_all_feedback = ``;
-
-              feedbacks.forEach((eachFeedback, index) => {
-
-              show_all_feedback += `number ${index + 1} feedback is Thank You for visiting our
-                                  ${eachFeedback.resortLocation} and giving us ${eachFeedback.rating}
-                                  and your comment as ${eachFeedback.comments}. \n`
-              })
-
-              response.send({
-                'fulfillmentText' : show_all_feedback
-              });
-              return console.log("showfeedbacks", show_all_feedback);
-            })
-            .catch((err) => {
-              console.log("error getting document", err);
-
-              response.send({
-                'fulfillmentText' : `something went wrong while reading from the database`
-              })
-            })
-
-          break;
-        }
-
-      default: {
-      response.send({
-        'fulfillmentText' : `no action matched in webhook`
-      })
-    }
-    }
-});
+// exports.webhook = functions.https.onRequest((request, response) => {
+//
+//     // console.log("The query text is" , request.body.queryResult.queryText);
+//     console.log("request.body.queryResult.parameters", request.body.queryResult.parameters);
+//     console.log("request.body.originalDetectIntentRequest.payload", request.body.originalDetectIntentRequest.payload);
+//
+//     let userStorage = request.body.originalDetectIntentRequest.payload.user.userStorage || JSON.stringify({});
+//     let userId;
+//     console.log("userStorage", userStorage);
+//     userStorage = JSON.parse(userStorage);
+//     console.log("userStorage_after_parsing", userStorage);
+//
+//     // if a value for userID exists un user storage, it's a returning user so we can
+//     // just read the value and use it. If a value for userId does not exist in user storage,
+//     // it's a new user, so we need to generate a new ID and save it in user storage.
+//     if (userStorage.hasOwnProperty('userId')) {
+//       userId = userStorage.userId;
+//       console.log("userID In if", userId);
+//     } else {
+//       // Uses the "uuid" package. You can get this with "npm install --save uuid"
+//       // var uuid = require('uuid/v4');
+//       var uuid = require('uuid/v4');
+//       userId = uuid();
+//       userStorage.userId = userId
+//     }
+//
+//     console.log("userID", userId);
+//
+//     // ... Do stuff with the userID
+//
+//     // Make sure you include the userStorage as part of the response
+//     // var responseBody = {
+//     //   payload: {
+//     //     google: {
+//     //       userStorage: userStorage,
+//     //       // ...
+//     //     }
+//     //   }
+//     // };
+//
+//     switch (request.body.queryResult.action) {
+//       case 'FeedbackAction': {
+//
+//             let params = request.body.queryResult.parameters;
+//             // let text = request.body.queryResult.queryText;
+//             //database
+//             // var full_session_id = request.body.session;
+//             // var session = full_session_id.split("/")[4];
+//
+//             firestore.collection('users').doc(userId).set(params)
+//               .then(() => {
+//
+//               response.send({
+//                 'fulfillmentText' : `Thank You for visiting our ${params.resortLocation} hotel branch and giving us ${params.rating} and your comment as ${params.comments}.` ,
+//                 'payload': {
+//                   'google': {
+//                     'userStorage': JSON.stringify(userStorage) ,
+//                     "expectUserResponse": true,
+//                     "richResponse": {
+//                       "items": [
+//                         {
+//                           "simpleResponse": {
+//                             "textToSpeech": "Howdy! I can tell you fun facts about almost any number."
+//                           }
+//                         },
+//                         {
+//                           "simpleResponse": {
+//                             "textToSpeech": "What number do you have in mind?"
+//                           }
+//                         }
+//                       ],
+//                       "suggestions": [
+//                         {
+//                           "title": "25"
+//                         },
+//                         {
+//                           "title": "45"
+//                         },
+//                         {
+//                           "title": "Never mind"
+//                         }
+//                       ],
+//                       "linkOutSuggestion": {
+//                         "destinationName": "Website",
+//                         "url": "https://assistant.google.com"
+//                       }
+//                     }
+//
+//
+//                   }
+//                 }
+//
+//
+//                 });
+//                 return console.log("resort location", params.resortLocation);
+//             })
+//             .catch((e => {
+//
+//               console.log('error: ', e);
+//
+//               response.send({
+//              'fulfillmentText' : `something went wrong when writing to database`,
+//              'payload': {
+//                'google': {
+//                  'userStorage': JSON.stringify(userStorage)
+//                }
+//              }
+//                 });
+//             }))
+//
+//
+//
+//         break;
+//       }
+//         case 'countFeedbacks':{
+//
+//           var docRef = firestore.collection('users').doc(userId);
+//
+//           docRef.get().then(doc => {
+//               if (doc.exists) {
+//                   // console.log("Document data:", doc.data());
+//                   var dat = doc.data();
+//                   response.send({
+//                     'fulfillmentText' : `You have given feedback for ${dat.resortLocation} and rating as ${dat.rating}`,
+//                     'payload': {
+//                       'google': {
+//                         'userStorage': JSON.stringify(userStorage)
+//                       }
+//                     }
+//                   });
+//
+//               } else {
+//                   // doc.data() will be undefined in this case
+//                   console.log("No such document!");
+//
+//                   response.send({
+//                     'fulfillmentText' : `No feedback found in our database`,
+//                     'payload': {
+//                       'google': {
+//                         'userStorage': JSON.stringify(userStorage)
+//                       }
+//                     }
+//                   });
+//
+//               }
+//               return console.log("userStorage_then_wala", userStorage);
+//           }).catch((e => {
+//               console.log("Error getting document:", error);
+//               response.send({
+//                 'fulfillmentText' : `something went wrong while reading from the database`,
+//                 'payload': {
+//                   'google': {
+//                     'userStorage': JSON.stringify(userStorage)
+//                   }
+//                 }
+//               })
+//           }));
+//
+//           break;
+//         }
+//
+//         case 'ShowFeedbacks':{
+//
+//           firestore.collection('users').get()
+//             .then((snapshot) => {
+//
+//               var feedbacks = [];
+//               snapshot.forEach((doc) => { feedbacks.push(doc.data())});
+//
+//               var show_all_feedback = ``;
+//
+//               feedbacks.forEach((eachFeedback, index) => {
+//
+//               show_all_feedback += `number ${index + 1} feedback is Thank You for visiting our
+//                                   ${eachFeedback.resortLocation} and giving us ${eachFeedback.rating}
+//                                   and your comment as ${eachFeedback.comments}. \n`
+//               })
+//
+//               response.send({
+//                 'fulfillmentText' : show_all_feedback
+//               });
+//               return console.log("showfeedbacks", show_all_feedback);
+//             })
+//             .catch((err) => {
+//               console.log("error getting document", err);
+//
+//               response.send({
+//                 'fulfillmentText' : `something went wrong while reading from the database`
+//               })
+//             })
+//
+//           break;
+//         }
+//
+//       default: {
+//       response.send({
+//         'fulfillmentText' : `no action matched in webhook`
+//       })
+//     }
+//     }
+// });
 
 //
 // var medical_json = {
@@ -1883,556 +2004,556 @@ exports.webhook = functions.https.onRequest((request, response) => {
 //
 // });
 
-var country_json = {
-  "Spain" : {
-    1:{
-      "pack_rental":646,
-      "effective_rental":646,
-      "validity":1,
-      "incoming_calls":"unlimited",
-      "free_data":"500 MB",
-      "free_minutes_India_local":100,
-      "free_sms":100
-    },
-    10:{
-      "pack_rental":2998,
-      "effective_rental":299,
-      "validity":10,
-      "incoming_calls":"unlimited",
-      "free_data":"3 GB",
-      "free_minutes_India_local":250,
-      "free_sms":100
-    },
-    30:{
-      "pack_rental":3997,
-      "effective_rental":133,
-      "validity":30,
-      "incoming_calls":"unlimited",
-      "free_data":"5 GB",
-      "free_minutes_India_local":500,
-      "free_sms":100
-    }
-  },
-  "United States of America" : {
-    1:{
-      "pack_rental":646,
-      "effective_rental":646,
-      "validity":1,
-      "incoming_calls":"unlimited",
-      "free_data":"500 MB",
-      "free_minutes_India_local":100,
-      "free_sms":100
-    },
-    10:{
-      "pack_rental":2998,
-      "effective_rental":299,
-      "validity":10,
-      "incoming_calls":"unlimited",
-      "free_data":"3 GB",
-      "free_minutes_India_local":250,
-      "free_sms":100
-    },
-    30:{
-      "pack_rental":3997,
-      "effective_rental":133,
-      "validity":30,
-      "incoming_calls":"unlimited",
-      "free_data":"5 GB",
-      "free_minutes_India_local":500,
-      "free_sms":100
-    }
-  },
-  "Indonesia" : {
-    1:{
-      "pack_rental":646,
-      "effective_rental":646,
-      "validity":1,
-      "incoming_calls":"unlimited",
-      "free_data":"500 MB",
-      "free_minutes_India_local":100,
-      "free_sms":100
-    },
-    10:{
-      "pack_rental":2998,
-      "effective_rental":299,
-      "validity":10,
-      "incoming_calls":"unlimited",
-      "free_data":"3 GB",
-      "free_minutes_India_local":250,
-      "free_sms":100
-    },
-    30:{
-      "pack_rental":3997,
-      "effective_rental":133,
-      "validity":30,
-      "incoming_calls":"unlimited",
-      "free_data":"5 GB",
-      "free_minutes_India_local":500,
-      "free_sms":100
-    }
-  },
-  "United Kingdom of Great Britain and Northern Ireland" : {
-    1:{
-      "pack_rental":646,
-      "effective_rental":646,
-      "validity":1,
-      "incoming_calls":"unlimited",
-      "free_data":"500 MB",
-      "free_minutes_India_local":100,
-      "free_sms":100
-    },
-    10:{
-      "pack_rental":2998,
-      "effective_rental":299,
-      "validity":10,
-      "incoming_calls":"unlimited",
-      "free_data":"3 GB",
-      "free_minutes_India_local":250,
-      "free_sms":100
-    },
-    30:{
-      "pack_rental":3997,
-      "effective_rental":133,
-      "validity":30,
-      "incoming_calls":"unlimited",
-      "free_data":"5 GB",
-      "free_minutes_India_local":500,
-      "free_sms":100
-    }
-  },
-  "Sri Lanka" : {
-    1:{
-      "pack_rental":498,
-      "effective_rental":498,
-      "validity":1,
-      "incoming_calls":"unlimited",
-      "free_data":"500 MB",
-      "free_minutes_India_local":100,
-      "free_sms":100
-    },
-    10:{
-      "pack_rental":1197,
-      "effective_rental":119,
-      "validity":10,
-      "incoming_calls":"unlimited",
-      "free_data":"3 GB",
-      "free_minutes_India_local":250,
-      "free_sms":100
-    },
-    30:{
-      "pack_rental":2498,
-      "effective_rental":83,
-      "validity":30,
-      "incoming_calls":"unlimited",
-      "free_data":"5 GB",
-      "free_minutes_India_local":500,
-      "free_sms":100
-    }
-  },
-  "Singapore" : {
-    1:{
-      "pack_rental":498,
-      "effective_rental":498,
-      "validity":1,
-      "incoming_calls":"unlimited",
-      "free_data":"500 MB",
-      "free_minutes_India_local":100,
-      "free_sms":100
-    },
-    10:{
-      "pack_rental":1197,
-      "effective_rental":119,
-      "validity":10,
-      "incoming_calls":"unlimited",
-      "free_data":"3 GB",
-      "free_minutes_India_local":250,
-      "free_sms":100
-    },
-    30:{
-      "pack_rental":2498,
-      "effective_rental":83,
-      "validity":30,
-      "incoming_calls":"unlimited",
-      "free_data":"5 GB",
-      "free_minutes_India_local":500,
-      "free_sms":100
-    }
-  },
-  "Malaysia" : {
-    1:{
-      "pack_rental":498,
-      "effective_rental":498,
-      "validity":1,
-      "incoming_calls":"unlimited",
-      "free_data":"500 MB",
-      "free_minutes_India_local":100,
-      "free_sms":100
-    },
-    10:{
-      "pack_rental":1197,
-      "effective_rental":119,
-      "validity":10,
-      "incoming_calls":"unlimited",
-      "free_data":"3 GB",
-      "free_minutes_India_local":250,
-      "free_sms":100
-    },
-    30:{
-      "pack_rental":2498,
-      "effective_rental":83,
-      "validity":30,
-      "incoming_calls":"unlimited",
-      "free_data":"5 GB",
-      "free_minutes_India_local":500,
-      "free_sms":100
-    }
-  },
-  "Nepal" : {
-    1:{
-      "pack_rental":646,
-      "effective_rental":646,
-      "validity":1,
-      "incoming_calls":"unlimited",
-      "free_data":"500 MB",
-      "free_minutes_India_local":100,
-      "free_sms":100
-    },
-    10:{
-      "pack_rental":2998,
-      "effective_rental":299,
-      "validity":10,
-      "incoming_calls":"unlimited",
-      "free_data":"3 GB",
-      "free_minutes_India_local":250,
-      "free_sms":100
-    },
-    30:{
-      "pack_rental":3997,
-      "effective_rental":133,
-      "validity":30,
-      "incoming_calls":"unlimited",
-      "free_data":"5 GB",
-      "free_minutes_India_local":500,
-      "free_sms":100
-    }
-  },
-  "Hong Kong" : {
-    1:{
-      "pack_rental":646,
-      "effective_rental":646,
-      "validity":1,
-      "incoming_calls":"unlimited",
-      "free_data":"500 MB",
-      "free_minutes_India_local":100,
-      "free_sms":100
-    },
-    10:{
-      "pack_rental":2998,
-      "effective_rental":299,
-      "validity":10,
-      "incoming_calls":"unlimited",
-      "free_data":"3 GB",
-      "free_minutes_India_local":250,
-      "free_sms":100
-    },
-    30:{
-      "pack_rental":3997,
-      "effective_rental":133,
-      "validity":30,
-      "incoming_calls":"unlimited",
-      "free_data":"5 GB",
-      "free_minutes_India_local":500,
-      "free_sms":100
-    }
-  },
-  "Thailand" : {
-    1:{
-      "pack_rental":498,
-      "effective_rental":498,
-      "validity":1,
-      "incoming_calls":"unlimited",
-      "free_data":"500 MB",
-      "free_minutes_India_local":100,
-      "free_sms":100
-    },
-    10:{
-      "pack_rental":1197,
-      "effective_rental":119,
-      "validity":10,
-      "incoming_calls":"unlimited",
-      "free_data":"3 GB",
-      "free_minutes_India_local":250,
-      "free_sms":100
-    },
-    30:{
-      "pack_rental":2498,
-      "effective_rental":83,
-      "validity":30,
-      "incoming_calls":"unlimited",
-      "free_data":"5 GB",
-      "free_minutes_India_local":500,
-      "free_sms":100
-    }
-  },
-  "Morocco" : {
-    1:{
-      "pack_rental":994,
-      "effective_rental":994,
-      "validity":1,
-      "incoming_calls":"100 mins",
-      "free_data":"500 MB",
-      "free_minutes_India_local":100,
-      "free_sms":100
-    },
-    10:{
-      "pack_rental":3995,
-      "effective_rental":399,
-      "validity":10,
-      "incoming_calls":"250 mins",
-      "free_data":"3 GB",
-      "free_minutes_India_local":250,
-      "free_sms":100
-    },
-    30:{
-      "pack_rental":6999,
-      "effective_rental":233,
-      "validity":30,
-      "incoming_calls":"500 mins",
-      "free_data":"5 GB",
-      "free_minutes_India_local":500,
-      "free_sms":100
-    }
-  }
-}
-
-exports.airtel = functions.https.onRequest((request, response) => {
-  var days = request.body.queryResult.parameters.days ;
-  console.log("days", days);
-
-  var country = request.body.queryResult.parameters.country ;
-  console.log("country", country);
-
-  var string_country = JSON.stringify(country_json);
-  var parse_country = JSON.parse(string_country);
-
-  var day_plan;
-
-  if(days < 0){
-    response.send({'fulfillmentText' : `Days cannot be in negative`});
-  } else if(days === 1){
-    day_plan = 1;
-
-    var pack_rental = parse_country[country][day_plan].pack_rental ;
-    var effective_rental = parse_country[country][day_plan].effective_rental ;
-    var validity = parse_country[country][day_plan].validity ;
-    var incoming_calls = parse_country[country][day_plan].incoming_calls ;
-    var free_data = parse_country[country][day_plan].free_data ;
-    var free_minutes_India_local = parse_country[country][day_plan].free_minutes_India_local ;
-    var free_sms = parse_country[country][day_plan].free_sms ;
-
-    response.send({
-      'payload': {
-        'google': {
-          "expectUserResponse": true,
-          "richResponse": {
-            "items": [
-              {
-                "simpleResponse": {
-                  "textToSpeech": "Awesome! Finding the best pack for you."
-                }
-              },
-              {
-                "simpleResponse": {
-                  "textToSpeech": `I feel great to hear that you're visiting ${country} so the best plan I can offer for your entourage is Rs ${pack_rental} per day for ${days} day which cost you Rs ${pack_rental * days}  \n This pack includes ${incoming_calls} incoming calls, 500 MB free data, ${free_minutes_India_local * days} free minutes to India or Local and ${free_sms * days} SMSs with ${validity * days} day validity.`
-                }
-              }
-            ],
-            "suggestions": [
-              {
-                "title": "Purchase this pack"
-              },
-              {
-                "title": "exit"
-              }
-            ]
-          }
-        }
-      }
-
-
-    });
-
-  } else if(days === 2 || days === 3 || days === 4){
-    day_plan = 1;
-
-    pack_rental = parse_country[country][day_plan].pack_rental ;
-    effective_rental = parse_country[country][day_plan].effective_rental ;
-    validity = parse_country[country][day_plan].validity ;
-    incoming_calls = parse_country[country][day_plan].incoming_calls ;
-    free_data = parse_country[country][day_plan].free_data ;
-    free_minutes_India_local = parse_country[country][day_plan].free_minutes_India_local ;
-    free_sms = parse_country[country][day_plan].free_sms ;
-
-    response.send({
-      'payload': {
-        'google': {
-          "expectUserResponse": true,
-          "richResponse": {
-            "items": [
-              {
-                "simpleResponse": {
-                  "textToSpeech": "Awesome! Finding the best pack for you."
-                }
-              },
-              {
-                "simpleResponse": {
-                  "textToSpeech": `I feel great to hear that you're visiting ${country} so the best plan I can offer for your entourage is Rs ${effective_rental} per day for ${days} days which cost you ${pack_rental * days}  \n This pack includes ${incoming_calls} incoming calls, 1000 MB free data, ${free_minutes_India_local * days} free minutes to India or Local and ${free_sms * days} SMSs with ${validity * days} days validity.`
-                }
-              }
-            ],
-            "suggestions": [
-              {
-                "title": "Purchase this pack"
-              },
-              {
-                "title": "exit"
-              }
-            ]
-          }
-        }
-      }
-
-    });
-
-  } else if(days <= 10){
-    day_plan = 10;
-
-    pack_rental = parse_country[country][day_plan].pack_rental ;
-    effective_rental = parse_country[country][day_plan].effective_rental ;
-    validity = parse_country[country][day_plan].validity ;
-    incoming_calls = parse_country[country][day_plan].incoming_calls ;
-    free_data = parse_country[country][day_plan].free_data ;
-    free_minutes_India_local = parse_country[country][day_plan].free_minutes_India_local ;
-    free_sms = parse_country[country][day_plan].free_sms ;
-
-    response.send({
-      'payload': {
-        'google': {
-          "expectUserResponse": true,
-          "richResponse": {
-            "items": [
-              {
-                "simpleResponse": {
-                  "textToSpeech": "Awesome! Finding the best pack for you."
-                }
-              },
-              {
-                "simpleResponse": {
-                  "textToSpeech": `I feel great to hear that you're visiting ${country} so the best plan I can offer for your entourage is Rs ${effective_rental} per day for 10 days which cost you ${pack_rental}  \nThis pack includes ${incoming_calls} incoming calls, ${free_data} free data, ${free_minutes_India_local} free minutes to India or Local and ${free_sms} SMSs with ${validity} days validity.`
-                }
-              }
-            ],
-            "suggestions": [
-              {
-                "title": "Purchase this pack"
-              },
-              {
-                "title": "exit"
-              }
-            ]
-          }
-        }
-      }
-
-    });
-
-  } else if(days === 11) {
-    day_plan = 10;
-    var rem_days = days % day_plan ;
-    pack_rental = parse_country[country][day_plan].pack_rental ;
-    effective_rental = parse_country[country][day_plan].effective_rental ;
-    validity = parse_country[country][day_plan].validity ;
-    incoming_calls = parse_country[country][day_plan].incoming_calls ;
-    free_data = parse_country[country][day_plan].free_data ;
-    free_minutes_India_local = parse_country[country][day_plan].free_minutes_India_local ;
-    free_sms = parse_country[country][day_plan].free_sms ;
-
-    response.send({
-      'payload': {
-        'google': {
-          "expectUserResponse": true,
-          "richResponse": {
-            "items": [
-              {
-                "simpleResponse": {
-                  "textToSpeech": "Awesome! Finding the best pack for you."
-                }
-              },
-              {
-                "simpleResponse": {
-                  "textToSpeech": `I feel great to hear that you're visiting ${country} so the best plan I can offer for your entourage is Rs ${effective_rental} per day for 10 days and Rs 646 for 11th day which cost you ${pack_rental + (646 * rem_days)}  \n This pack includes ${incoming_calls} incoming calls, 3500 MB free data, ${free_minutes_India_local + (100 * rem_days)} free minutes to India or Local and ${free_sms + (100*rem_days)} SMSs with ${validity + (rem_days)} days validity.`
-                }
-              }
-            ],
-            "suggestions": [
-              {
-                "title": "Purchase this pack"
-              },
-              {
-                "title": "exit"
-              }
-            ]
-          }
-        }
-      }
-
-    });
-
-  } else {
-    day_plan = 30;
-
-    pack_rental = parse_country[country][day_plan].pack_rental ;
-    effective_rental = parse_country[country][day_plan].effective_rental ;
-    validity = parse_country[country][day_plan].validity ;
-    incoming_calls = parse_country[country][day_plan].incoming_calls ;
-    free_data = parse_country[country][day_plan].free_data ;
-    free_minutes_India_local = parse_country[country][day_plan].free_minutes_India_local ;
-    free_sms = parse_country[country][day_plan].free_sms ;
-
-    response.send({
-      'payload': {
-        'google': {
-          "expectUserResponse": true,
-          "richResponse": {
-            "items": [
-              {
-                "simpleResponse": {
-                  "textToSpeech": "Awesome! Finding the best pack for you."
-                }
-              },
-              {
-                "simpleResponse": {
-                  "textToSpeech": `I feel great to hear that you're visiting ${country} so the best plan I can offer for your entourage is Rs ${effective_rental} per day for ${day_plan} days which cost you Rs ${pack_rental}  \n This pack includes ${incoming_calls} incoming calls, ${free_data} free data, ${free_minutes_India_local} free minutes to India or Local and ${free_sms} SMSs with ${validity} days validity.`
-                }
-              }
-            ],
-            "suggestions": [
-              {
-                "title": "Purchase this pack"
-              },
-              {
-                "title": "exit"
-              }
-            ]
-          }
-        }
-      }
-
-    });
-  }
-
-
-});
+// var country_json = {
+//   "Spain" : {
+//     1:{
+//       "pack_rental":646,
+//       "effective_rental":646,
+//       "validity":1,
+//       "incoming_calls":"unlimited",
+//       "free_data":"500 MB",
+//       "free_minutes_India_local":100,
+//       "free_sms":100
+//     },
+//     10:{
+//       "pack_rental":2998,
+//       "effective_rental":299,
+//       "validity":10,
+//       "incoming_calls":"unlimited",
+//       "free_data":"3 GB",
+//       "free_minutes_India_local":250,
+//       "free_sms":100
+//     },
+//     30:{
+//       "pack_rental":3997,
+//       "effective_rental":133,
+//       "validity":30,
+//       "incoming_calls":"unlimited",
+//       "free_data":"5 GB",
+//       "free_minutes_India_local":500,
+//       "free_sms":100
+//     }
+//   },
+//   "United States of America" : {
+//     1:{
+//       "pack_rental":646,
+//       "effective_rental":646,
+//       "validity":1,
+//       "incoming_calls":"unlimited",
+//       "free_data":"500 MB",
+//       "free_minutes_India_local":100,
+//       "free_sms":100
+//     },
+//     10:{
+//       "pack_rental":2998,
+//       "effective_rental":299,
+//       "validity":10,
+//       "incoming_calls":"unlimited",
+//       "free_data":"3 GB",
+//       "free_minutes_India_local":250,
+//       "free_sms":100
+//     },
+//     30:{
+//       "pack_rental":3997,
+//       "effective_rental":133,
+//       "validity":30,
+//       "incoming_calls":"unlimited",
+//       "free_data":"5 GB",
+//       "free_minutes_India_local":500,
+//       "free_sms":100
+//     }
+//   },
+//   "Indonesia" : {
+//     1:{
+//       "pack_rental":646,
+//       "effective_rental":646,
+//       "validity":1,
+//       "incoming_calls":"unlimited",
+//       "free_data":"500 MB",
+//       "free_minutes_India_local":100,
+//       "free_sms":100
+//     },
+//     10:{
+//       "pack_rental":2998,
+//       "effective_rental":299,
+//       "validity":10,
+//       "incoming_calls":"unlimited",
+//       "free_data":"3 GB",
+//       "free_minutes_India_local":250,
+//       "free_sms":100
+//     },
+//     30:{
+//       "pack_rental":3997,
+//       "effective_rental":133,
+//       "validity":30,
+//       "incoming_calls":"unlimited",
+//       "free_data":"5 GB",
+//       "free_minutes_India_local":500,
+//       "free_sms":100
+//     }
+//   },
+//   "United Kingdom of Great Britain and Northern Ireland" : {
+//     1:{
+//       "pack_rental":646,
+//       "effective_rental":646,
+//       "validity":1,
+//       "incoming_calls":"unlimited",
+//       "free_data":"500 MB",
+//       "free_minutes_India_local":100,
+//       "free_sms":100
+//     },
+//     10:{
+//       "pack_rental":2998,
+//       "effective_rental":299,
+//       "validity":10,
+//       "incoming_calls":"unlimited",
+//       "free_data":"3 GB",
+//       "free_minutes_India_local":250,
+//       "free_sms":100
+//     },
+//     30:{
+//       "pack_rental":3997,
+//       "effective_rental":133,
+//       "validity":30,
+//       "incoming_calls":"unlimited",
+//       "free_data":"5 GB",
+//       "free_minutes_India_local":500,
+//       "free_sms":100
+//     }
+//   },
+//   "Sri Lanka" : {
+//     1:{
+//       "pack_rental":498,
+//       "effective_rental":498,
+//       "validity":1,
+//       "incoming_calls":"unlimited",
+//       "free_data":"500 MB",
+//       "free_minutes_India_local":100,
+//       "free_sms":100
+//     },
+//     10:{
+//       "pack_rental":1197,
+//       "effective_rental":119,
+//       "validity":10,
+//       "incoming_calls":"unlimited",
+//       "free_data":"3 GB",
+//       "free_minutes_India_local":250,
+//       "free_sms":100
+//     },
+//     30:{
+//       "pack_rental":2498,
+//       "effective_rental":83,
+//       "validity":30,
+//       "incoming_calls":"unlimited",
+//       "free_data":"5 GB",
+//       "free_minutes_India_local":500,
+//       "free_sms":100
+//     }
+//   },
+//   "Singapore" : {
+//     1:{
+//       "pack_rental":498,
+//       "effective_rental":498,
+//       "validity":1,
+//       "incoming_calls":"unlimited",
+//       "free_data":"500 MB",
+//       "free_minutes_India_local":100,
+//       "free_sms":100
+//     },
+//     10:{
+//       "pack_rental":1197,
+//       "effective_rental":119,
+//       "validity":10,
+//       "incoming_calls":"unlimited",
+//       "free_data":"3 GB",
+//       "free_minutes_India_local":250,
+//       "free_sms":100
+//     },
+//     30:{
+//       "pack_rental":2498,
+//       "effective_rental":83,
+//       "validity":30,
+//       "incoming_calls":"unlimited",
+//       "free_data":"5 GB",
+//       "free_minutes_India_local":500,
+//       "free_sms":100
+//     }
+//   },
+//   "Malaysia" : {
+//     1:{
+//       "pack_rental":498,
+//       "effective_rental":498,
+//       "validity":1,
+//       "incoming_calls":"unlimited",
+//       "free_data":"500 MB",
+//       "free_minutes_India_local":100,
+//       "free_sms":100
+//     },
+//     10:{
+//       "pack_rental":1197,
+//       "effective_rental":119,
+//       "validity":10,
+//       "incoming_calls":"unlimited",
+//       "free_data":"3 GB",
+//       "free_minutes_India_local":250,
+//       "free_sms":100
+//     },
+//     30:{
+//       "pack_rental":2498,
+//       "effective_rental":83,
+//       "validity":30,
+//       "incoming_calls":"unlimited",
+//       "free_data":"5 GB",
+//       "free_minutes_India_local":500,
+//       "free_sms":100
+//     }
+//   },
+//   "Nepal" : {
+//     1:{
+//       "pack_rental":646,
+//       "effective_rental":646,
+//       "validity":1,
+//       "incoming_calls":"unlimited",
+//       "free_data":"500 MB",
+//       "free_minutes_India_local":100,
+//       "free_sms":100
+//     },
+//     10:{
+//       "pack_rental":2998,
+//       "effective_rental":299,
+//       "validity":10,
+//       "incoming_calls":"unlimited",
+//       "free_data":"3 GB",
+//       "free_minutes_India_local":250,
+//       "free_sms":100
+//     },
+//     30:{
+//       "pack_rental":3997,
+//       "effective_rental":133,
+//       "validity":30,
+//       "incoming_calls":"unlimited",
+//       "free_data":"5 GB",
+//       "free_minutes_India_local":500,
+//       "free_sms":100
+//     }
+//   },
+//   "Hong Kong" : {
+//     1:{
+//       "pack_rental":646,
+//       "effective_rental":646,
+//       "validity":1,
+//       "incoming_calls":"unlimited",
+//       "free_data":"500 MB",
+//       "free_minutes_India_local":100,
+//       "free_sms":100
+//     },
+//     10:{
+//       "pack_rental":2998,
+//       "effective_rental":299,
+//       "validity":10,
+//       "incoming_calls":"unlimited",
+//       "free_data":"3 GB",
+//       "free_minutes_India_local":250,
+//       "free_sms":100
+//     },
+//     30:{
+//       "pack_rental":3997,
+//       "effective_rental":133,
+//       "validity":30,
+//       "incoming_calls":"unlimited",
+//       "free_data":"5 GB",
+//       "free_minutes_India_local":500,
+//       "free_sms":100
+//     }
+//   },
+//   "Thailand" : {
+//     1:{
+//       "pack_rental":498,
+//       "effective_rental":498,
+//       "validity":1,
+//       "incoming_calls":"unlimited",
+//       "free_data":"500 MB",
+//       "free_minutes_India_local":100,
+//       "free_sms":100
+//     },
+//     10:{
+//       "pack_rental":1197,
+//       "effective_rental":119,
+//       "validity":10,
+//       "incoming_calls":"unlimited",
+//       "free_data":"3 GB",
+//       "free_minutes_India_local":250,
+//       "free_sms":100
+//     },
+//     30:{
+//       "pack_rental":2498,
+//       "effective_rental":83,
+//       "validity":30,
+//       "incoming_calls":"unlimited",
+//       "free_data":"5 GB",
+//       "free_minutes_India_local":500,
+//       "free_sms":100
+//     }
+//   },
+//   "Morocco" : {
+//     1:{
+//       "pack_rental":994,
+//       "effective_rental":994,
+//       "validity":1,
+//       "incoming_calls":"100 mins",
+//       "free_data":"500 MB",
+//       "free_minutes_India_local":100,
+//       "free_sms":100
+//     },
+//     10:{
+//       "pack_rental":3995,
+//       "effective_rental":399,
+//       "validity":10,
+//       "incoming_calls":"250 mins",
+//       "free_data":"3 GB",
+//       "free_minutes_India_local":250,
+//       "free_sms":100
+//     },
+//     30:{
+//       "pack_rental":6999,
+//       "effective_rental":233,
+//       "validity":30,
+//       "incoming_calls":"500 mins",
+//       "free_data":"5 GB",
+//       "free_minutes_India_local":500,
+//       "free_sms":100
+//     }
+//   }
+// }
+//
+// exports.airtel = functions.https.onRequest((request, response) => {
+//   var days = request.body.queryResult.parameters.days ;
+//   console.log("days", days);
+//
+//   var country = request.body.queryResult.parameters.country ;
+//   console.log("country", country);
+//
+//   var string_country = JSON.stringify(country_json);
+//   var parse_country = JSON.parse(string_country);
+//
+//   var day_plan;
+//
+//   if(days < 0){
+//     response.send({'fulfillmentText' : `Days cannot be in negative`});
+//   } else if(days === 1){
+//     day_plan = 1;
+//
+//     var pack_rental = parse_country[country][day_plan].pack_rental ;
+//     var effective_rental = parse_country[country][day_plan].effective_rental ;
+//     var validity = parse_country[country][day_plan].validity ;
+//     var incoming_calls = parse_country[country][day_plan].incoming_calls ;
+//     var free_data = parse_country[country][day_plan].free_data ;
+//     var free_minutes_India_local = parse_country[country][day_plan].free_minutes_India_local ;
+//     var free_sms = parse_country[country][day_plan].free_sms ;
+//
+//     response.send({
+//       'payload': {
+//         'google': {
+//           "expectUserResponse": true,
+//           "richResponse": {
+//             "items": [
+//               {
+//                 "simpleResponse": {
+//                   "textToSpeech": "Awesome! Finding the best pack for you."
+//                 }
+//               },
+//               {
+//                 "simpleResponse": {
+//                   "textToSpeech": `I feel great to hear that you're visiting ${country} so the best plan I can offer for your entourage is Rs ${pack_rental} per day for ${days} day which cost you Rs ${pack_rental * days}  \n This pack includes ${incoming_calls} incoming calls, 500 MB free data, ${free_minutes_India_local * days} free minutes to India or Local and ${free_sms * days} SMSs with ${validity * days} day validity.`
+//                 }
+//               }
+//             ],
+//             "suggestions": [
+//               {
+//                 "title": "Purchase this pack"
+//               },
+//               {
+//                 "title": "exit"
+//               }
+//             ]
+//           }
+//         }
+//       }
+//
+//
+//     });
+//
+//   } else if(days === 2 || days === 3 || days === 4){
+//     day_plan = 1;
+//
+//     pack_rental = parse_country[country][day_plan].pack_rental ;
+//     effective_rental = parse_country[country][day_plan].effective_rental ;
+//     validity = parse_country[country][day_plan].validity ;
+//     incoming_calls = parse_country[country][day_plan].incoming_calls ;
+//     free_data = parse_country[country][day_plan].free_data ;
+//     free_minutes_India_local = parse_country[country][day_plan].free_minutes_India_local ;
+//     free_sms = parse_country[country][day_plan].free_sms ;
+//
+//     response.send({
+//       'payload': {
+//         'google': {
+//           "expectUserResponse": true,
+//           "richResponse": {
+//             "items": [
+//               {
+//                 "simpleResponse": {
+//                   "textToSpeech": "Awesome! Finding the best pack for you."
+//                 }
+//               },
+//               {
+//                 "simpleResponse": {
+//                   "textToSpeech": `I feel great to hear that you're visiting ${country} so the best plan I can offer for your entourage is Rs ${effective_rental} per day for ${days} days which cost you ${pack_rental * days}  \n This pack includes ${incoming_calls} incoming calls, 1000 MB free data, ${free_minutes_India_local * days} free minutes to India or Local and ${free_sms * days} SMSs with ${validity * days} days validity.`
+//                 }
+//               }
+//             ],
+//             "suggestions": [
+//               {
+//                 "title": "Purchase this pack"
+//               },
+//               {
+//                 "title": "exit"
+//               }
+//             ]
+//           }
+//         }
+//       }
+//
+//     });
+//
+//   } else if(days <= 10){
+//     day_plan = 10;
+//
+//     pack_rental = parse_country[country][day_plan].pack_rental ;
+//     effective_rental = parse_country[country][day_plan].effective_rental ;
+//     validity = parse_country[country][day_plan].validity ;
+//     incoming_calls = parse_country[country][day_plan].incoming_calls ;
+//     free_data = parse_country[country][day_plan].free_data ;
+//     free_minutes_India_local = parse_country[country][day_plan].free_minutes_India_local ;
+//     free_sms = parse_country[country][day_plan].free_sms ;
+//
+//     response.send({
+//       'payload': {
+//         'google': {
+//           "expectUserResponse": true,
+//           "richResponse": {
+//             "items": [
+//               {
+//                 "simpleResponse": {
+//                   "textToSpeech": "Awesome! Finding the best pack for you."
+//                 }
+//               },
+//               {
+//                 "simpleResponse": {
+//                   "textToSpeech": `I feel great to hear that you're visiting ${country} so the best plan I can offer for your entourage is Rs ${effective_rental} per day for 10 days which cost you ${pack_rental}  \nThis pack includes ${incoming_calls} incoming calls, ${free_data} free data, ${free_minutes_India_local} free minutes to India or Local and ${free_sms} SMSs with ${validity} days validity.`
+//                 }
+//               }
+//             ],
+//             "suggestions": [
+//               {
+//                 "title": "Purchase this pack"
+//               },
+//               {
+//                 "title": "exit"
+//               }
+//             ]
+//           }
+//         }
+//       }
+//
+//     });
+//
+//   } else if(days === 11) {
+//     day_plan = 10;
+//     var rem_days = days % day_plan ;
+//     pack_rental = parse_country[country][day_plan].pack_rental ;
+//     effective_rental = parse_country[country][day_plan].effective_rental ;
+//     validity = parse_country[country][day_plan].validity ;
+//     incoming_calls = parse_country[country][day_plan].incoming_calls ;
+//     free_data = parse_country[country][day_plan].free_data ;
+//     free_minutes_India_local = parse_country[country][day_plan].free_minutes_India_local ;
+//     free_sms = parse_country[country][day_plan].free_sms ;
+//
+//     response.send({
+//       'payload': {
+//         'google': {
+//           "expectUserResponse": true,
+//           "richResponse": {
+//             "items": [
+//               {
+//                 "simpleResponse": {
+//                   "textToSpeech": "Awesome! Finding the best pack for you."
+//                 }
+//               },
+//               {
+//                 "simpleResponse": {
+//                   "textToSpeech": `I feel great to hear that you're visiting ${country} so the best plan I can offer for your entourage is Rs ${effective_rental} per day for 10 days and Rs 646 for 11th day which cost you ${pack_rental + (646 * rem_days)}  \n This pack includes ${incoming_calls} incoming calls, 3500 MB free data, ${free_minutes_India_local + (100 * rem_days)} free minutes to India or Local and ${free_sms + (100*rem_days)} SMSs with ${validity + (rem_days)} days validity.`
+//                 }
+//               }
+//             ],
+//             "suggestions": [
+//               {
+//                 "title": "Purchase this pack"
+//               },
+//               {
+//                 "title": "exit"
+//               }
+//             ]
+//           }
+//         }
+//       }
+//
+//     });
+//
+//   } else {
+//     day_plan = 30;
+//
+//     pack_rental = parse_country[country][day_plan].pack_rental ;
+//     effective_rental = parse_country[country][day_plan].effective_rental ;
+//     validity = parse_country[country][day_plan].validity ;
+//     incoming_calls = parse_country[country][day_plan].incoming_calls ;
+//     free_data = parse_country[country][day_plan].free_data ;
+//     free_minutes_India_local = parse_country[country][day_plan].free_minutes_India_local ;
+//     free_sms = parse_country[country][day_plan].free_sms ;
+//
+//     response.send({
+//       'payload': {
+//         'google': {
+//           "expectUserResponse": true,
+//           "richResponse": {
+//             "items": [
+//               {
+//                 "simpleResponse": {
+//                   "textToSpeech": "Awesome! Finding the best pack for you."
+//                 }
+//               },
+//               {
+//                 "simpleResponse": {
+//                   "textToSpeech": `I feel great to hear that you're visiting ${country} so the best plan I can offer for your entourage is Rs ${effective_rental} per day for ${day_plan} days which cost you Rs ${pack_rental}  \n This pack includes ${incoming_calls} incoming calls, ${free_data} free data, ${free_minutes_India_local} free minutes to India or Local and ${free_sms} SMSs with ${validity} days validity.`
+//                 }
+//               }
+//             ],
+//             "suggestions": [
+//               {
+//                 "title": "Purchase this pack"
+//               },
+//               {
+//                 "title": "exit"
+//               }
+//             ]
+//           }
+//         }
+//       }
+//
+//     });
+//   }
+//
+//
+// });
 
 // exports.testoddeven = functions.https.onRequest((request, response) => {
 //
