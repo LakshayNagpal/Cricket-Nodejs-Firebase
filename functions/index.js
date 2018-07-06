@@ -681,12 +681,10 @@ exports.superhero = functions.https.onRequest((request, response) => {
         });
 
           } else {
-            console.log("else block executed when no superhero found in API")
             response.send({'fulfillmentText': `Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
           }
           return console.log(output);
       }).catch(() => {
-        console.log('catch block of superhero executed');
         response.send({'fulfillmentText' : `Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
       })
 
@@ -697,7 +695,7 @@ exports.superhero = functions.https.onRequest((request, response) => {
     case 'characteristic': {
 
       var characteristic_chosen = request.body.queryResult.parameters.characteristic ;
-      console.log("characteristic_chosen", characteristic_chosen);
+      // console.log("characteristic_chosen", characteristic_chosen);
       var characteristic_compare_user = '' ;
       var characteristic_compare_ass = '' ;
       var winner_text = '' ;
@@ -719,14 +717,14 @@ exports.superhero = functions.https.onRequest((request, response) => {
     }
 
 
-      console.log("user_chosen_character", user_chosen_character);
+      // console.log("user_chosen_character", user_chosen_character);
 
       superHero_with_name(user_chosen_character).then((output) => {
           // response.send({'fulfillmentText': `Success!!!` });
           var res = output.response ;
           if(res === 'success'){
             var powerstat = output.results[0].powerstats ;
-            console.log("powerstat[characteristic_chosen]", powerstat[characteristic_chosen]);
+            // console.log("powerstat[characteristic_chosen]", powerstat[characteristic_chosen]);
             characteristic_compare_user = powerstat[characteristic_chosen];
 
 
@@ -735,7 +733,7 @@ exports.superhero = functions.https.onRequest((request, response) => {
                 var res_random_id = output1.response ;
 
                 if(res_random_id === 'success'){
-                  console.log("res_random_id executed", res_random_id);
+                  // console.log("res_random_id executed", res_random_id);
 
                   super_name = output1.name ;
                   super_publisher = output1.biography.publisher ;
@@ -809,7 +807,7 @@ exports.superhero = functions.https.onRequest((request, response) => {
                     var superhero_card = { };
                     superhero_card['total_player'] = -1;
                     superhero_card['times_played'] = 1;
-                    console.log(superhero_card);
+                    // console.log(superhero_card);
                     //I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.
                     fields = firestore.collection('superhero').doc(userId);
                     fields.get()
@@ -861,7 +859,7 @@ exports.superhero = functions.https.onRequest((request, response) => {
                     superhero_card = { };
                     superhero_card['total_player'] = 3;
                     superhero_card['times_played'] = 1;
-                    console.log(superhero_card);
+                    // console.log(superhero_card);
                     //I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.
                     fields = firestore.collection('superhero').doc(userId);
                     fields.get()
@@ -913,7 +911,7 @@ exports.superhero = functions.https.onRequest((request, response) => {
                     superhero_card = { };
                     superhero_card['total_player'] = 1;
                     superhero_card['times_played'] = 1;
-                    console.log(superhero_card);
+                    // console.log(superhero_card);
                     //I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.
                     fields = firestore.collection('superhero').doc(userId);
                     fields.get()
@@ -1007,7 +1005,7 @@ exports.superhero = functions.https.onRequest((request, response) => {
               });
 
                 } else {
-                  console.log("character block executed of random id else block executed when no superhero found in API")
+                  // console.log("character block executed of random id else block executed when no superhero found in API")
                   response.send({'fulfillmentText' : `Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
                 }
                 return console.log(output);
@@ -1017,12 +1015,12 @@ exports.superhero = functions.https.onRequest((request, response) => {
 
 
           } else {
-            console.log("character block executed else block executed when no superhero found in API")
+            // console.log("character block executed else block executed when no superhero found in API")
             response.send({'fulfillmentText': `Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
           }
           return console.log(output);
       }).catch(() => {
-        console.log('catch block of characteristic name wala executed');
+        // console.log('catch block of characteristic name wala executed');
         response.send({'fulfillmentText': `Sorry, I cannot find the superhero you're finding! But you can become one by helping and motivating people.`});
       })
 
@@ -1125,7 +1123,7 @@ function superHero_with_name (name) {
       let body = '';
       res.on('data', (d) => { body += d;});
       res.on('end', () => {
-        console.log("BODY:", body);
+        // console.log("BODY:", body);
         let output = JSON.parse(body);
         resolve(output);
 
@@ -1147,7 +1145,7 @@ function superHero_with_random_id (id) {
       let body = '';
       res.on('data', (d) => { body += d;});
       res.on('end', () => {
-        console.log("BODY:", body);
+        // console.log("BODY:", body);
         let output = JSON.parse(body);
         resolve(output);
 
@@ -1187,7 +1185,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
 
   console.log("userID", userId);
 
-
+  if(request.body.queryResult.languageCode === "de"){
   switch(request.body.queryResult.action) {
 
     case 'generatenumber' : {
@@ -1199,6 +1197,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
       runs = Math.floor(runs);
       if(runs <= 0 || runs > 6){
         response.send({
+          'fulfillmentText':`Du kannst nur von 1 Run bis 6 Runs treffen.`,
           'payload': {
             'google': {
               'userStorage': JSON.stringify(userStorage),
@@ -1207,7 +1206,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
                 "items": [
                   {
                     "simpleResponse": {
-                      "textToSpeech": `You can only hit from 1 run to 6 runs.`
+                      "textToSpeech": `Du kannst nur von 1 Run bis 6 Runs treffen.`
                     }
                   }
                 ],
@@ -1253,6 +1252,602 @@ exports.oddeven = functions.https.onRequest((request, response) => {
           if(!doc.exists){
             console.log('No duch document!');
             response.send({
+              'fulfillmentText':`Wir haben beide getroffen ${runs} läuft. Entschuldigung, du bist auf dem ersten Ball!  \nUnglücklicherweise ist Ihre Gesamtpunktzahl 0 Run.  \nMöchtest du wieder antreten?`,
+              'payload': {
+                'google': {
+                  'userStorage': JSON.stringify(userStorage),
+                  "expectUserResponse": true,
+                  "richResponse": {
+                    "items": [
+                      {
+                        "simpleResponse": {
+                          "textToSpeech": `Wir haben beide getroffen ${runs} läuft. Entschuldigung, du bist auf dem ersten Ball!`
+                        }
+                      },
+                      {
+                        "simpleResponse": {
+                          "textToSpeech": `Unglücklicherweise ist Ihre Gesamtpunktzahl 0 Run.  \nMöchtest du wieder antreten?`
+                        }
+                      }
+                    ],
+                    "suggestions": [
+                      {
+                        "title": "Ja"
+                      },
+                      {
+                        "title": "Nein"
+                      }
+                    ]
+                    // "linkOutSuggestion": {
+                    //   "destinationName": "Website",
+                    //   "url": "https://assistant.google.com"
+                    // }
+                  }
+                }
+              }
+
+            });
+          } else {
+            card = doc.data();
+            //console.log("doc_data_else", doc.data());
+            //console.log("total_player in card", card['total_player']);
+            var runs_scored = card['total_player'];
+            var max_runs = card['max_runs'];
+
+            card['total_player'] = 0;
+            card['times_played'] += 1;
+            if(runs_scored > max_runs){
+              card['max_runs'] = runs_scored;
+            }
+
+
+            var leader_board = firestore.collection('game').doc('leaderboard');
+            leader_board.get()
+            .then(doc => {
+              if(!doc.exists){
+                console.log('leaderboard document doesnot exist');
+              } else {
+                var leader_runs = doc.data();
+                var top_1 = leader_runs['top_1'];
+                var top_2 = leader_runs['top_2'];
+                var top_3 = leader_runs['top_3'];
+                if(runs_scored > top_1){
+                  firestore.collection('game').doc('leaderboard').set({'top_1': runs_scored,'top_2': top_2,'top_3': top_3})
+                  .then(() => {
+                    return console.log("leaderboard top_1 updated");
+                  })
+                  .catch((e => {
+                    console.log('error of leaderboard: ', e);
+                  }))
+                } else if(runs_scored > top_2 && runs_scored < top_1){
+                  firestore.collection('game').doc('leaderboard').set({'top_1': top_1,'top_2': runs_scored,'top_3': top_3})
+                  .then(() => {
+                    return console.log("leaderboard top_2 updated");
+                  })
+                  .catch((e => {
+                    console.log('error of leaderboard: ', e);
+                  }))
+                } else if(runs_scored > top_3 && runs_scored < top_2){
+                  firestore.collection('game').doc('leaderboard').set({'top_1': top_1,'top_2': top_2,'top_3': runs_scored})
+                  .then(() => {
+                    return console.log("leaderboard top_3 updated");
+                  })
+                  .catch((e => {
+                    console.log('error of leaderboard: ', e);
+                  }))
+                }
+              }
+              return console.log("leaderboard else executed");
+            })
+            .catch((e => {
+              console.log('error: ', e);
+            }))
+
+
+
+
+
+            //console.log("card after adding times played", card);
+
+            firestore.collection('game').doc(userId).set(card)
+              .then(() => {
+                response.send({
+                  'fulfillmentText':`Wir haben beide getroffen ${runs} läuft. Entschuldigung, Du bist raus!  \nIhre Gesamtpunktzahl ist ${runs_scored} läuft.  \nMöchtest du wieder spielen?`,
+                  'payload': {
+                    'google': {
+                      'userStorage': JSON.stringify(userStorage),
+                      "expectUserResponse": true,
+                      "richResponse": {
+                        "items": [
+                          {
+                            "simpleResponse": {
+                              "textToSpeech": `Wir haben beide getroffen ${runs} läuft. Entschuldigung, Du bist raus!  \nIhre Gesamtpunktzahl ist ${runs_scored} läuft.`
+                            }
+                          },
+                          {
+                            "simpleResponse": {
+                              "textToSpeech": `Möchtest du wieder spielen?`
+                            }
+                          }
+                        ],
+                        "suggestions": [
+                          {
+                            "title": "Ja"
+                          },
+                          {
+                            "title": "Nein"
+                          },
+                          {
+                            "title": "Meine Punktzahl"
+                          },
+                          {
+                            "title": "Bestenliste"
+                          }
+                        ]
+                        // "linkOutSuggestion": {
+                        //   "destinationName": "Website",
+                        //   "url": "https://assistant.google.com"
+                        // }
+                      }
+                    }
+                  }
+
+                });
+                return console.log("max_runs", max_runs);
+              })
+              .catch((e => {
+
+                console.log('error: ', e);
+
+                response.send({
+               'fulfillmentText' : `Beim Schreiben in die Datenbank ist ein Fehler aufgetreten`,
+               'payload': {
+                 'google': {
+                   'userStorage': JSON.stringify(userStorage)
+                 }
+               }
+
+                  });
+              }))
+
+          }
+          return console.log("card when runs are equal", card);
+        })
+        .catch((e => {
+          console.log('error from database when runs are equal', e);
+        }));
+
+        // card['total_player'] = 0;
+        // card['times_played'] += 1;
+
+      } else {
+        card = { };
+        card['total_player'] = runs;
+        card['times_played'] = 0;
+        card['max_runs'] = 0;
+        console.log(card);
+
+        fields = firestore.collection('game').doc(userId);
+        fields.get()
+        .then( doc => {
+            if(!doc.exists){
+              firestore.collection('game').doc(userId).set(card)
+                .then(() => {
+                  response.send({
+                    'fulfillmentText': `ich schlage ${ass_run} läuft. Sie treffen ${runs} läuft. Ihre Gesamtpunktzahl ist ${card['total_player']}*  \nGroß! Schlage den nächsten eingehenden Ball.`,
+                    'payload': {
+                      'google': {
+                        'userStorage': JSON.stringify(userStorage),
+                        "expectUserResponse": true,
+                        "richResponse": {
+                          "items": [
+                            {
+                              "simpleResponse": {
+                                "textToSpeech": `ich schlage ${ass_run} läuft. Sie treffen ${runs} läuft. Ihre Gesamtpunktzahl ist ${card['total_player']}*  \nGroß! Schlage den nächsten eingehenden Ball.`
+                              }
+                            }
+                          ],
+                          "suggestions": [
+                            {
+                              "title": "1"
+                            },
+                            {
+                              "title": "2"
+                            },
+                            {
+                              "title": "3"
+                            },
+                            {
+                              "title": "4"
+                            },
+                            {
+                              "title": "5"
+                            },
+                            {
+                              "title": "6"
+                            }
+                          ]
+                          // "linkOutSuggestion": {
+                          //   "destinationName": "Website",
+                          //   "url": "https://assistant.google.com"
+                          // }
+                        }
+
+                      }
+                    }
+                  });
+                  return console.log("total runs in card", card);
+                })
+                .catch((e => {
+
+                  console.log('error: ', e);
+
+                  response.send({
+                 'fulfillmentText' : `Beim Schreiben in die Datenbank ist ein Fehler aufgetreten`,
+                 'payload': {
+                   'google': {
+                     'userStorage': JSON.stringify(userStorage)
+                   }
+                 }
+                    });
+                }))
+
+
+            } else {
+              card = doc.data();
+              //console.log("doc_data_else", doc.data());
+              //console.log("total_player in card", card['total_player']);
+              card['total_player'] = card['total_player'] + runs;
+              //console.log("card after adding runs", card);
+
+              firestore.collection('game').doc(userId).set(card)
+                .then(() => {
+                  response.send({
+                    'fulfillmentText':`ich schlage ${ass_run} läuft. Sie treffen ${runs} läuft. Ihre Gesamtpunktzahl ist ${card['total_player']}*  \nGroß! Schlage den nächsten eingehenden Ball.`,
+                    'payload': {
+                      'google': {
+                        'userStorage': JSON.stringify(userStorage),
+                        "expectUserResponse": true,
+                        "richResponse": {
+                          "items": [
+                            {
+                              "simpleResponse": {
+                                "textToSpeech": `ich schlage ${ass_run} läuft. Sie treffen ${runs} läuft. Ihre Gesamtpunktzahl ist ${card['total_player']}*  \nGroß! Schlage den nächsten eingehenden Ball.`
+                              }
+                            }
+                          ],
+                          "suggestions": [
+                            {
+                              "title": "1"
+                            },
+                            {
+                              "title": "2"
+                            },
+                            {
+                              "title": "3"
+                            },
+                            {
+                              "title": "4"
+                            },
+                            {
+                              "title": "5"
+                            },
+                            {
+                              "title": "6"
+                            }
+                          ]
+                          // "linkOutSuggestion": {
+                          //   "destinationName": "Website",
+                          //   "url": "https://assistant.google.com"
+                          // }
+                        }
+
+                      }
+                    }
+
+                  });
+
+                  // response.send({
+                  //   'fulfillmentText' : `I hit ${ass_run} runs. You hit ${runs} runs. Great! Hit the next incoming ball.`,
+                  //   'payload': {
+                  //     'google': {
+                  //       'userStorage': JSON.stringify(userStorage)
+                  //     }
+                  //   }
+                  //
+                  // });
+
+                  return console.log("total runs in card", card);
+                })
+                .catch((e => {
+
+                  console.log('error: ', e);
+
+                  response.send({
+                 'fulfillmentText' : `Beim Schreiben in die Datenbank ist ein Fehler aufgetreten`,
+                 'payload': {
+                   'google': {
+                     'userStorage': JSON.stringify(userStorage)
+                   }
+                 }
+                    });
+                }))
+
+            }
+            return console.log("card when runs are not equal", card);
+          })
+        .catch((e => {
+          console.log('error from database', e);
+        }));
+
+
+        }
+      }
+
+
+
+      break;
+    }
+
+    case 'maximumruns' : {
+
+      var player_data = firestore.collection('game').doc(userId);
+      player_data.get()
+      .then(doc => {
+        if(!doc.exists){
+          console.log('No such document!');
+          response.send({
+            'fulfillmentText': `Sie haben maximal 0 Runs erzielt. Möchtest du das Spiel fortsetzen?`,
+            'payload': {
+              'google': {
+                'userStorage': JSON.stringify(userStorage),
+                "expectUserResponse": true,
+                "richResponse": {
+                  "items": [
+                    {
+                      "simpleResponse": {
+                        "textToSpeech": `Sie haben maximal 0 Runs erzielt. Möchtest du das Spiel fortsetzen?`
+                      }
+                    }
+                  ],
+                  "suggestions": [
+                    {
+                      "title": "Ja"
+                    },
+                    {
+                      "title": "Nein"
+                    },
+                    {
+                      "title": "Bestenliste"
+                    }
+                  ],
+                  // "linkOutSuggestion": {
+                  //   "destinationName": "Website",
+                  //   "url": "https://assistant.google.com"
+                  // }
+                }
+              }
+            }
+          });
+        } else {
+          var max_card = doc.data();
+          var max_runs = max_card['max_runs'];
+          var num_plays = max_card['times_played'];
+
+          response.send({
+            'fulfillmentText': `Du hast ein Maximum von ${max_runs} läuft rein ${num_plays} Streichhölzer. Mach weiter so!  \nMöchtest du das Spiel fortsetzen?`,
+            'payload': {
+              'google': {
+                'userStorage': JSON.stringify(userStorage),
+                "expectUserResponse": true,
+                "richResponse": {
+                  "items": [
+                    {
+                      "simpleResponse": {
+                        "textToSpeech": `Du hast ein Maximum von ${max_runs} läuft rein ${num_plays} Streichhölzer. Mach weiter so!`
+                      }
+                    },
+                    {
+                      "simpleResponse": {
+                        "textToSpeech": `Möchtest du das Spiel fortsetzen?`
+                      }
+                    }
+                  ],
+                  "suggestions": [
+                    {
+                      "title": "Ja"
+                    },
+                    {
+                      "title": "Nein"
+                    },
+                    {
+                      "title": "Bestenliste"
+                    }
+                  ]
+
+                }
+              }
+            }
+
+          });
+        }
+        return console.log("max_runs", max_runs);
+      })
+      .catch((e => {
+
+        console.log('error: ', e);
+
+        response.send({
+       'fulfillmentText' : `Beim Schreiben in die Datenbank ist ein Fehler aufgetreten`,
+       'payload': {
+         'google': {
+           'userStorage': JSON.stringify(userStorage)
+         }
+       }
+
+          });
+      }))
+
+      break;
+    }
+
+    case 'leaderboard': {
+
+      var leader_board = firestore.collection('game').doc('leaderboard');
+      leader_board.get()
+      .then(doc => {
+        if(!doc.exists){
+          console.log('leaderboard document doesnot exist');
+        } else {
+          var leader_runs = doc.data();
+
+          response.send({
+            'fulfillmentText': `Voice Cricket Bestenliste  \n1. Rajat Thakur ${leader_runs['top_1']}  \n2. Vasu Verma ${leader_runs['top_2']}  \n3. Sudheer Reddy Gaddam ${leader_runs['top_3']}  \nWould you like to continue the play?`,
+            'payload': {
+              'google': {
+                'userStorage': JSON.stringify(userStorage),
+                "expectUserResponse": true,
+                "richResponse": {
+                  "items": [
+                    {
+                      "simpleResponse": {
+                        "textToSpeech": `Hier ist das Leaderboard`
+                      }
+                    },
+                    {
+                      "basicCard": {
+                        "title": "Voice Cricket Leaderboard",
+                        "formattedText": `*1. Rajat Thakur* **${leader_runs['top_1']}**  \n*2. Vasu Verma* **${leader_runs['top_2']}**  \n*3. Sudheer Reddy Gaddam* **${leader_runs['top_3']}**`,
+                      }
+                    },
+                    {
+                      "simpleResponse": {
+                        "textToSpeech": `Möchtest du das Spiel fortsetzen?`
+                      }
+                    }
+                  ],
+                  "suggestions": [
+                    {
+                      "title": "Ja"
+                    },
+                    {
+                      "title": "Nein"
+                    },
+                    {
+                      "title": "Meine Punktzahl"
+                    }
+                  ]
+                }
+              }
+            }
+
+          });
+        }
+        return console.log("leaderboard else executed");
+      })
+      .catch((e => {
+
+        console.log('error: ', e);
+
+        response.send({
+       'fulfillmentText' : `Beim Schreiben in die Datenbank ist ein Fehler aufgetreten`,
+       'payload': {
+         'google': {
+           'userStorage': JSON.stringify(userStorage)
+         }
+       }
+
+          });
+      }))
+
+      break;
+    }
+
+    default: {
+
+      response.send({
+        'fulfillmentText' : `no action matched in webhook`,
+        'payload': {
+          'google': {
+            'userStorage': JSON.stringify(userStorage)
+          }
+        }
+      });
+
+      break;
+    }
+
+  }   // switch case ending brace
+
+} else {     // english language else block end
+
+  switch(request.body.queryResult.action) {
+
+    case 'generatenumber' : {
+
+
+      let params = request.body.queryResult.parameters ;
+      let runs = request.body.queryResult.parameters.runs.number ;
+
+      runs = Math.floor(runs);
+      if(runs <= 0 || runs > 6){
+        response.send({
+          'fulfillmentText':`You can only hit from 1 run to 6 runs.`,
+          'payload': {
+            'google': {
+              'userStorage': JSON.stringify(userStorage),
+              "expectUserResponse": true,
+              "richResponse": {
+                "items": [
+                  {
+                    "simpleResponse": {
+                      "textToSpeech": `You can only hit from 1 run to 6 runs.`
+                    }
+                  }
+                ],
+                "suggestions": [
+                  {
+                    "title": "1"
+                  },
+                  {
+                    "title": "2"
+                  },
+                  {
+                    "title": "3"
+                  },
+                  {
+                    "title": "4"
+                  },
+                  {
+                    "title": "5"
+                  },
+                  {
+                    "title": "6"
+                  }
+                ]
+                // "linkOutSuggestion": {
+                //   "destinationName": "Website",
+                //   "url": "https://assistant.google.com"
+                // }
+              }
+            }
+          }
+
+        })
+      } else {
+
+      ass_run = Math.floor(Math.random() * 6) + 1;
+    //console.log("card outside", card);
+
+      if(ass_run === runs){
+        card = { };
+        fields = firestore.collection('game').doc(userId);
+        fields.get()
+        .then( doc => {
+          if(!doc.exists){
+            console.log('No duch document!');
+            response.send({
+              'fulfillmentText':`We both hit ${runs} runs. Sorry, You're out on the first ball!  \nUnluckily, Your total score is 0 run.  \nWould you like to compete again?`,
               'payload': {
                 'google': {
                   'userStorage': JSON.stringify(userStorage),
@@ -1352,6 +1947,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
             firestore.collection('game').doc(userId).set(card)
               .then(() => {
                 response.send({
+                  'fulfillmentText':`We both hit ${runs} runs. Sorry, You're out!  \nYour total score is ${runs_scored} runs.  \nWould you like play again?`,
                   'payload': {
                     'google': {
                       'userStorage': JSON.stringify(userStorage),
@@ -1375,6 +1971,12 @@ exports.oddeven = functions.https.onRequest((request, response) => {
                           },
                           {
                             "title": "no"
+                          },
+                          {
+                            "title": "My Score"
+                          },
+                          {
+                            "title": "Leaderboard"
                           }
                         ]
                         // "linkOutSuggestion": {
@@ -1427,6 +2029,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
               firestore.collection('game').doc(userId).set(card)
                 .then(() => {
                   response.send({
+                    'fulfillmentText': `I hit ${ass_run} runs. You hit ${runs} runs. Your total score is ${card['total_player']}*  \nGreat! Hit the next incoming ball.`,
                     'payload': {
                       'google': {
                         'userStorage': JSON.stringify(userStorage),
@@ -1495,6 +2098,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
               firestore.collection('game').doc(userId).set(card)
                 .then(() => {
                   response.send({
+                    'fulfillmentText':`I hit ${ass_run} runs. You hit ${runs} runs. Your total score is ${card['total_player']}*  \nGreat! Hit the next incoming ball.`,
                     'payload': {
                       'google': {
                         'userStorage': JSON.stringify(userStorage),
@@ -1582,12 +2186,13 @@ exports.oddeven = functions.https.onRequest((request, response) => {
 
     case 'maximumruns' : {
 
-      var player_data = firestore.collection('game').doc(userId);
+      player_data = firestore.collection('game').doc(userId);
       player_data.get()
       .then(doc => {
         if(!doc.exists){
           console.log('No such document!');
           response.send({
+            'fulfillmentText': `You have scored a maximum of 0 run. Would you like to continue the game?`,
             'payload': {
               'google': {
                 'userStorage': JSON.stringify(userStorage),
@@ -1596,7 +2201,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
                   "items": [
                     {
                       "simpleResponse": {
-                        "textToSpeech": `You have scored a maximum of 0 run. Would you like to play again?`
+                        "textToSpeech": `You have scored a maximum of 0 run. Would you like to continue the game?`
                       }
                     }
                   ],
@@ -1606,6 +2211,9 @@ exports.oddeven = functions.https.onRequest((request, response) => {
                     },
                     {
                       "title": "no"
+                    },
+                    {
+                      "title": "Leaderboard"
                     }
                   ],
                   // "linkOutSuggestion": {
@@ -1622,6 +2230,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
           var num_plays = max_card['times_played'];
 
           response.send({
+            'fulfillmentText': `You have scored a maximum of ${max_runs} runs in ${num_plays} matches. Keep up the good play!  \nWould you like to continue the game?`,
             'payload': {
               'google': {
                 'userStorage': JSON.stringify(userStorage),
@@ -1635,7 +2244,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
                     },
                     {
                       "simpleResponse": {
-                        "textToSpeech": `Would you like to continue the play?`
+                        "textToSpeech": `Would you like to continue the game?`
                       }
                     }
                   ],
@@ -1645,6 +2254,9 @@ exports.oddeven = functions.https.onRequest((request, response) => {
                     },
                     {
                       "title": "no"
+                    },
+                    {
+                      "title": "Leaderboard"
                     }
                   ]
 
@@ -1676,7 +2288,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
 
     case 'leaderboard': {
 
-      var leader_board = firestore.collection('game').doc('leaderboard');
+      leader_board = firestore.collection('game').doc('leaderboard');
       leader_board.get()
       .then(doc => {
         if(!doc.exists){
@@ -1685,6 +2297,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
           var leader_runs = doc.data();
 
           response.send({
+            'fulfillmentText': `Voice Cricket Leaderboard  \n1. Rajat Thakur ${leader_runs['top_1']}  \n2. Vasu Verma ${leader_runs['top_2']}  \n3. Sudheer Reddy Gaddam ${leader_runs['top_3']}  \nWould you like to continue the play?`,
             'payload': {
               'google': {
                 'userStorage': JSON.stringify(userStorage),
@@ -1699,7 +2312,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
                     {
                       "basicCard": {
                         "title": "Voice Cricket Leaderboard",
-                        "formattedText": `*1. Rajat Thakur* **${leader_runs['top_1']}**  \n*2. Vasu Bharija* **${leader_runs['top_2']}**  \n*3. Sudheer Reddy Gaddam* **${leader_runs['top_3']}**`,
+                        "formattedText": `*1. Rajat Thakur* **${leader_runs['top_1']}**  \n*2. Vasu Verma* **${leader_runs['top_2']}**  \n*3. Sudheer Reddy Gaddam* **${leader_runs['top_3']}**`,
                       }
                     },
                     {
@@ -1742,8 +2355,6 @@ exports.oddeven = functions.https.onRequest((request, response) => {
           });
       }))
 
-
-
       break;
     }
 
@@ -1761,7 +2372,10 @@ exports.oddeven = functions.https.onRequest((request, response) => {
       break;
     }
 
-  }
+  }   // switch case ending brace
+
+
+} //  language else block end
 
 });
 
@@ -2554,7 +3168,7 @@ exports.oddeven = functions.https.onRequest((request, response) => {
 //
 //
 // });
-
+//
 // exports.testoddeven = functions.https.onRequest((request, response) => {
 //
 //   // var full_session_id = request.body.session;
