@@ -621,6 +621,7 @@ exports.superhero = functions.https.onRequest((request, response) => {
             response.send({
             "payload": {
               "google": {
+                "userStorage": JSON.stringify(userStorage),
                 "expectUserResponse": true,
                 "richResponse": {
                   "items": [
@@ -1037,6 +1038,7 @@ exports.superhero = functions.https.onRequest((request, response) => {
               response.send({
               "payload": {
                 "google": {
+                  "userStorage": JSON.stringify(userStorage),
                   "expectUserResponse": true,
                   "richResponse": {
                     "items": [
@@ -1066,6 +1068,7 @@ exports.superhero = functions.https.onRequest((request, response) => {
             response.send({
             "payload": {
               "google": {
+                "userStorage": JSON.stringify(userStorage),
                 "expectUserResponse": true,
                 "richResponse": {
                   "items": [
@@ -1185,7 +1188,8 @@ exports.oddeven = functions.https.onRequest((request, response) => {
 
   console.log("userID", userId);
 
-  if(request.body.queryResult.languageCode === "de"){
+  if(request.body.queryResult.languageCode === "de"){   //German language
+
   switch(request.body.queryResult.action) {
 
     case 'generatenumber' : {
